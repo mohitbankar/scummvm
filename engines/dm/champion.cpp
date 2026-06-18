@@ -554,7 +554,7 @@ void ChampionMan::addObjectInSlot(ChampionIndex champIndex, Thing thing, Champio
 				menuMan.clearActingChampion();
 
 			if ((iconIndex >= kDMIconIndiceScrollOpen) && (iconIndex <= kDMIconIndiceScrollClosed)) {
-				((Scroll *)rawObjPtr)->setClosed(false);
+				SCROLL_setClosed(rawObjPtr, false);
 				drawChangedObjectIcons();
 			}
 		}
@@ -709,7 +709,7 @@ Thing ChampionMan::getObjectRemovedFromSlot(uint16 champIndex, uint16 slotIndex)
 				_vm->_menuMan->clearActingChampion();
 
 			if ((curIconIndex >= kDMIconIndiceScrollOpen) && (curIconIndex <= kDMIconIndiceScrollClosed)) {
-				((Scroll *)curWeapon)->setClosed(true);
+				SCROLL_setClosed(curWeapon, true);
 				drawChangedObjectIcons();
 			}
 		}

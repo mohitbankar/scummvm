@@ -159,7 +159,7 @@ IconIndice ObjectMan::getIconIndex(Thing thing) {
 					iconIndex += chargeCountToTorchType[WEAPON_chargeCount(junkThing)];
 				break;
 			case kDMIconIndiceScrollOpen:
-				if (((Scroll*)junkThing)->getClosed())
+				if (SCROLL_closed(junkThing))
 					iconIndex++;
 				break;
 			case kDMIconIndiceJunkWater:

@@ -312,12 +312,12 @@ void InventoryMan::drawPanelScrollTextLine(int16 yPos, char *text) {
 	_vm->_textMan->printToViewport(162 - (6 * strlen(text) / 2), yPos, kDMColorBlack, text, kDMColorWhite);
 }
 
-void InventoryMan::drawPanelScroll(Scroll *scroll) {
+void InventoryMan::drawPanelScroll(byte *scroll) {
 	DisplayMan &dispMan = *_vm->_displayMan;
 
 	char stringFirstLine[300];
 	_vm->_dungeonMan->decodeText(stringFirstLine, sizeof(stringFirstLine),
-			Thing(scroll->getTextStringThingIndex()), (int16)(kDMTextTypeScroll | kDMMaskDecodeEvenIfInvisible));
+			Thing(SCROLL_textStringThingIndex(scroll)), (int16)(kDMTextTypeScroll | kDMMaskDecodeEvenIfInvisible));
 	char *charRed = stringFirstLine;
 	while (*charRed && (*charRed != '\n'))
 		charRed++;
@@ -498,7 +498,7 @@ void InventoryMan::drawPanelObject(Thing thingToDraw, bool pressingEye) {
 	drawPanelObjectDescriptionString("\f"); // form feed
 	ThingType thingType = thingToDraw.getType();
 	if (thingType == kDMThingTypeScroll)
-		drawPanelScroll((Scroll *)rawThingPtr);
+		drawPanelScroll(rawThingPtr);
 	else if (thingType == kDMThingTypeContainer)
 		openAndDrawChest(thingToDraw, (Container *)rawThingPtr, pressingEye);
 	else {

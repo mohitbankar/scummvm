@@ -443,25 +443,14 @@ public:
 #define ARMOUR_chargeCount(address) ((ARMOUR_attributes(address) >> 9) & 0xF)
 #define ARMOUR_setChargeCount(address, val) WRITE_LE_UINT16((address) + 2, (ARMOUR_attributes(address) & ~(0xF << 9)) | (((val) & 0xF) << 9))
 
-class Scroll {
-	Thing _nextThing;
-	uint16 _attributes;
-public:
-	explicit Scroll(uint16 *rawDat) : _nextThing(rawDat[0]), _attributes(rawDat[1]) {}
-	void set(Thing next, uint16 attribs) {
-		_nextThing = next;
-		_attributes = attribs;
-	}
-	Thing getNextThing() { return _nextThing; }
-	uint16 getClosed() { return (_attributes >> 10) & 0x3F; } // ??? dunno why, the original bitfield is 6 bits long
-	void setClosed(bool val) {
-		if (val)
-			_attributes |= (1 << 10);
-		else
-			_attributes &= (~(0x3F << 10));
-	}
-	uint16 getTextStringThingIndex() { return _attributes & 0x3FF; }
-}; // @ SCROLL
+// @ SCROLL
+#define SCROLL_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define SCROLL_attributes(address) READ_LE_UINT16((address) + 2)
+#define SCROLL_setAttributes(address, val) WRITE_LE_UINT16((address) + 2, (val))
+
+#define SCROLL_closed(address) ((SCROLL_attributes(address) >> 10) & 0x3F)
+#define SCROLL_setClosed(address, val) SCROLL_setAttributes(address, (val) ? (SCROLL_attributes(address) | (1 << 10)) : (SCROLL_attributes(address) & ~(0x3F << 10)))
+#define SCROLL_textStringThingIndex(address) (SCROLL_attributes(address) & 0x3FF)
 
 // @ POTION
 #define POTION_nextThing(address) (Thing(READ_LE_UINT16(address)))
