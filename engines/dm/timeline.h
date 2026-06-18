@@ -31,7 +31,6 @@
 
 namespace DM {
 	class Champion;
-	class Sensor;
 
 /* Event types */
 enum TimelineEventType {
@@ -176,7 +175,7 @@ public:
 	void moveTeleporterOrPitSquareThings(uint16 mapX, uint16 mapY); // @ F0249_TIMELINE_MoveTeleporterOrPitSquareThings
 	void processEventSquareTeleporter(TimelineEvent *event); // @ F0250_TIMELINE_ProcessEvent8_Square_Teleporter
 	void processEventSquareWall(TimelineEvent *event); // @ F0248_TIMELINE_ProcessEvent6_Square_Wall
-	void triggerProjectileLauncher(Sensor *sensor, TimelineEvent *event); // @ F0247_TIMELINE_TriggerProjectileLauncher
+	void triggerProjectileLauncher(byte *sensor, TimelineEvent *event); // @ F0247_TIMELINE_TriggerProjectileLauncher
 	void processEventSquareCorridor(TimelineEvent *event); // @ F0245_TIMELINE_ProcessEvent5_Square_Corridor
 	void processEventsMoveGroup(TimelineEvent *event); // @ F0252_TIMELINE_ProcessEvents60to61_MoveGroup
 	void procesEventEnableGroupGenerator(TimelineEvent *event); // @ F0246_TIMELINE_ProcessEvent65_EnableGroupGenerator

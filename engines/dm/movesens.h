@@ -39,8 +39,6 @@ enum SensorEffect {
 };
 
 namespace DM {
-	class Sensor;
-
 	class MovesensMan {
 	DMEngine *_vm;
 public:
@@ -67,7 +65,7 @@ public:
 	Thing getTeleporterRotatedProjectileThing(byte *teleporter, Thing projectileThing); // @ F0263_MOVE_GetTeleporterRotatedProjectileThing
 	void processThingAdditionOrRemoval(uint16 mapX, uint16 mapY, Thing thing, bool partySquare, bool addThing);// @ F0276_SENSOR_ProcessThingAdditionOrRemoval
 	bool isObjectInPartyPossession(int16 objectType); // @ F0274_SENSOR_IsObjectInPartyPossession
-	void triggerEffect(Sensor *sensor, SensorEffect effect, int16 mapX, int16 mapY, uint16 cell); // @ F0272_SENSOR_TriggerEffect
+	void triggerEffect(byte *sensor, SensorEffect effect, int16 mapX, int16 mapY, uint16 cell); // @ F0272_SENSOR_TriggerEffect
 	void triggerLocalEffect(SensorEffect localEffect, int16 effX, int16 effY, int16 effCell); // @ F0270_SENSOR_TriggerLocalEffect
 	void addSkillExperience(int16 skillIndex, uint16 exp, bool leaderOnly); // @ F0269_SENSOR_AddSkillExperience
 	void processRotationEffect();// @ F0271_SENSOR_ProcessRotationEffect

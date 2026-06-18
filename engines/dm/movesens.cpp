@@ -76,8 +76,8 @@ bool MovesensMan::sensorIsTriggeredByClickOnWall(int16 mapX, int16 mapY, uint16 
 		if (ProcessedThingType == kDMThingTypeSensor) {
 			int16 cellIdx = thingBeingProcessed.getCell();
 			sensorCountToProcessPerCell[cellIdx]--;
-			Sensor *currentSensor = (Sensor *)dungeon.getThingData(thingBeingProcessed);
-			SensorType processedSensorType = currentSensor->getType();
+			byte *currentSensor = dungeon.getThingData(thingBeingProcessed);
+			SensorType processedSensorType = SENSOR_type(currentSensor);
 			if (processedSensorType == kDMSensorDisabled)
 				continue;
 
@@ -88,17 +88,17 @@ bool MovesensMan::sensorIsTriggeredByClickOnWall(int16 mapX, int16 mapY, uint16 
 				continue;
 
 			bool doNotTriggerSensor;
-			int16 sensorData = currentSensor->getData();
-			SensorEffect sensorEffect = (SensorEffect)currentSensor->getAttrEffectA();
+			int16 sensorData = SENSOR_data(currentSensor);
+			SensorEffect sensorEffect = (SensorEffect)SENSOR_getAttrEffectA(currentSensor);
 
 			switch (processedSensorType) {
 			case kDMSensorWallOrnClick:
 				doNotTriggerSensor = false;
-				if (currentSensor->getAttrEffectA() == kDMSensorEffectHold)
+				if (SENSOR_getAttrEffectA(currentSensor) == kDMSensorEffectHold)
 					continue;
 				break;
 			case kDMSensorWallOrnClickWithAnyObj:
-				doNotTriggerSensor = (_vm->_championMan->_leaderEmptyHanded != currentSensor->getAttrRevertEffectA());
+				doNotTriggerSensor = (_vm->_championMan->_leaderEmptyHanded != SENSOR_getAttrRevertEffectA(currentSensor));
 				break;
 			case kDMSensorWallOrnClickWithSpecObjRemovedSensor:
 			case kDMSensorWallOrnClickWithSpecObjRemovedRotateSensors:
@@ -107,13 +107,13 @@ bool MovesensMan::sensorIsTriggeredByClickOnWall(int16 mapX, int16 mapY, uint16 
 				// fall through
 			case kDMSensorWallOrnClickWithSpecObj:
 			case kDMSensorWallOrnClickWithSpecObjRemoved:
-				doNotTriggerSensor = ((sensorData == _vm->_objectMan->getObjectType(leaderHandObject)) == currentSensor->getAttrRevertEffectA());
+				doNotTriggerSensor = ((sensorData == _vm->_objectMan->getObjectType(leaderHandObject)) == SENSOR_getAttrRevertEffectA(currentSensor));
 				if (!doNotTriggerSensor && (processedSensorType == kDMSensorWallOrnClickWithSpecObjRemovedSensor)) {
 					if (lastProcessedThing == thingBeingProcessed) /* If the sensor is the only one of its type on the cell */
 						break;
-					Sensor *lastSensor = (Sensor *)dungeon.getThingData(lastProcessedThing);
-					lastSensor->setNextThing(currentSensor->getNextThing());
-					currentSensor->setNextThing(_vm->_thingNone);
+					byte *lastSensor = dungeon.getThingData(lastProcessedThing);
+					SENSOR_setNextThing(lastSensor, SENSOR_nextThing(currentSensor));
+					SENSOR_setNextThing(currentSensor, _vm->_thingNone);
 					thingBeingProcessed = lastProcessedThing;
 				}
 
@@ -182,7 +182,7 @@ bool MovesensMan::sensorIsTriggeredByClickOnWall(int16 mapX, int16 mapY, uint16 
 			}
 			if (!doNotTriggerSensor) {
 				atLeastOneSensorWasTriggered = true;
-				if (currentSensor->getAttrAudibleA())
+				if (SENSOR_getAttrAudibleA(currentSensor))
 					_vm->_sound->requestPlay(kDMSoundIndexSwitch, dungeon._partyMapX, dungeon._partyMapY, kDMSoundModePlayIfPrioritized);
 
 				if (!_vm->_championMan->_leaderEmptyHanded && ((processedSensorType == kDMSensorWallOrnClickWithSpecObjRemoved) || (processedSensorType == kDMSensorWallOrnClickWithSpecObjRemovedRotateSensors) || (processedSensorType == kDMSensorWallOrnClickWithSpecObjRemovedSensor))) {
@@ -760,14 +760,14 @@ void MovesensMan::processThingAdditionOrRemoval(uint16 mapX, uint16 mapY, Thing 
 	for (curThing = dungeon.getSquareFirstThing(mapX, mapY); curThing != _vm->_thingEndOfList; curThing = dungeon.getNextThing(curThing)) {
 		uint16 curThingType = curThing.getType();
 		if (curThingType == kDMThingTypeSensor) {
-			Sensor *curSensor = (Sensor *)dungeon.getThingData(curThing);
-			if (curSensor->getType() == kDMSensorDisabled)
+			byte *curSensor = dungeon.getThingData(curThing);
+			if (SENSOR_type(curSensor) == kDMSensorDisabled)
 				continue;
 
-			int16 curSensorData = curSensor->getData();
+			int16 curSensorData = SENSOR_data(curSensor);
 			bool triggerSensor = addThing;
 			if (sensorTriggeredCell == kDMCellAny) {
-				switch (curSensor->getType()) {
+				switch (SENSOR_type(curSensor)) {
 				case kDMSensorFloorTheronPartyCreatureObj:
 					if (partySquare || squareContainsObject || squareContainsGroup) /* BUG0_30 A floor sensor is not triggered when you put an object on the floor if a levitating creature is present on the same square. The condition to determine if the sensor should be triggered checks if there is a creature on the square but does not check whether the creature is levitating. While it is normal not to trigger the sensor if there is a non levitating creature on the square (because it was already triggered by the creature itself), a levitating creature should not prevent triggering the sensor with an object. */
 						continue;
@@ -824,17 +824,17 @@ void MovesensMan::processThingAdditionOrRemoval(uint16 mapX, uint16 mapY, Thing 
 				if (sensorTriggeredCell != curThing.getCell())
 					continue;
 
-				switch (curSensor->getType()) {
+				switch (SENSOR_type(curSensor)) {
 				case kDMSensorWallOrnClick:
 					if (squareContainsObject)
 						continue;
 					break;
 				case kDMSensorWallOrnClickWithAnyObj:
-					if (squareContainsThingOfSameType || (curSensor->getData() != _vm->_objectMan->getObjectType(thing)))
+					if (squareContainsThingOfSameType || (SENSOR_data(curSensor) != _vm->_objectMan->getObjectType(thing)))
 						continue;
 					break;
 				case kDMSensorWallOrnClickWithSpecObj:
-					if (squareContainsThingOfDifferentType || (curSensor->getData() == _vm->_objectMan->getObjectType(thing)))
+					if (squareContainsThingOfDifferentType || (SENSOR_data(curSensor) == _vm->_objectMan->getObjectType(thing)))
 						continue;
 					break;
 				default:
@@ -843,14 +843,14 @@ void MovesensMan::processThingAdditionOrRemoval(uint16 mapX, uint16 mapY, Thing 
 				}
 			}
 
-			triggerSensor ^= curSensor->getAttrRevertEffectA();
-			SensorEffect curSensorEffect = (SensorEffect)curSensor->getAttrEffectA();
+			triggerSensor ^= SENSOR_getAttrRevertEffectA(curSensor);
+			SensorEffect curSensorEffect = (SensorEffect)SENSOR_getAttrEffectA(curSensor);
 			if (curSensorEffect == kDMSensorEffectHold)
 				curSensorEffect = triggerSensor ? kDMSensorEffectSet : kDMSensorEffectClear;
 			else if (!triggerSensor)
 				continue;
 
-			if (curSensor->getAttrAudibleA())
+			if (SENSOR_getAttrAudibleA(curSensor))
 				_vm->_sound->requestPlay(kDMSoundIndexSwitch, mapX, mapY, kDMSoundModePlayIfPrioritized);
 
 			triggerEffect(curSensor, curSensorEffect, mapX, mapY, (uint16)kDMCellAny); // this will wrap around
@@ -903,7 +903,7 @@ bool MovesensMan::isObjectInPartyPossession(int16 objectType) {
 	return false;
 }
 
-void MovesensMan::triggerEffect(Sensor *sensor, SensorEffect effect, int16 mapX, int16 mapY, uint16 cell) {
+void MovesensMan::triggerEffect(byte *sensor, SensorEffect effect, int16 mapX, int16 mapY, uint16 cell) {
 	static const TimelineEventType squareTypeToEventTypeArray[7] = { // @ G0059_auc_Graphic562_SquareTypeToEventType
 		kDMEventTypeWall,
 		kDMEventTypeCorridor,
@@ -914,19 +914,19 @@ void MovesensMan::triggerEffect(Sensor *sensor, SensorEffect effect, int16 mapX,
 		kDMEventTypeFakeWall
 	};
 
-	if (sensor->getAttrOnlyOnce())
-		sensor->setTypeDisabled();
+	if (SENSOR_getAttrOnlyOnce(sensor))
+		SENSOR_setTypeDisabled(sensor);
 
-	int32 endTime = _vm->_gameTime + sensor->getAttrValue();
-	if (sensor->getAttrLocalEffect())
-		triggerLocalEffect((SensorEffect)sensor->getActionLocalEffect(), mapX, mapY, cell);
+	int32 endTime = _vm->_gameTime + SENSOR_getAttrValue(sensor);
+	if (SENSOR_getAttrLocalEffect(sensor))
+		triggerLocalEffect((SensorEffect)SENSOR_getActionLocalEffect(sensor), mapX, mapY, cell);
 	else {
-		int16 targetMapX = sensor->getActionTargetMapX();
-		int16 targetMapY = sensor->getActionTargetMapY();
+		int16 targetMapX = SENSOR_getActionTargetMapX(sensor);
+		int16 targetMapY = SENSOR_getActionTargetMapY(sensor);
 		ElementType curSquareType = Square(_vm->_dungeonMan->_currMapData[targetMapX][targetMapY]).getType();
 		Cell targetCell;
 		if (curSquareType == kDMElementTypeWall)
-			targetCell = sensor->getActionTargetCell();
+			targetCell = SENSOR_getActionTargetCell(sensor);
 		else
 			targetCell = kDMCellNorthWest;
 
@@ -974,8 +974,8 @@ void MovesensMan::processRotationEffect() {
 				|| ((_sensorRotationEffCell != kDMCellAny) && ((int16)firstSensorThing.getCell() != _sensorRotationEffCell))) {
 				firstSensorThing = dungeon.getNextThing(firstSensorThing);
 			}
-			Sensor *firstSensor = (Sensor *)dungeon.getThingData(firstSensorThing);
-			Thing lastSensorThing = firstSensor->getNextThing();
+			byte *firstSensor = dungeon.getThingData(firstSensorThing);
+			Thing lastSensorThing = SENSOR_nextThing(firstSensor);
 			while ((lastSensorThing != _vm->_thingEndOfList)
 				&& ((lastSensorThing.getType() != kDMThingTypeSensor)
 				|| ((_sensorRotationEffCell != kDMCellAny) && ((int16)lastSensorThing.getCell() != _sensorRotationEffCell)))) {
@@ -984,15 +984,15 @@ void MovesensMan::processRotationEffect() {
 			if (lastSensorThing == _vm->_thingEndOfList)
 				break;
 			dungeon.unlinkThingFromList(firstSensorThing, Thing(0), _sensorRotationEffMapX, _sensorRotationEffMapY);
-			Sensor *lastSensor = (Sensor *)dungeon.getThingData(lastSensorThing);
+			byte *lastSensor = dungeon.getThingData(lastSensorThing);
 			lastSensorThing = dungeon.getNextThing(lastSensorThing);
 			while (((lastSensorThing != _vm->_thingEndOfList) && (lastSensorThing.getType() == kDMThingTypeSensor))) {
 				if ((_sensorRotationEffCell == kDMCellAny) || ((int16)lastSensorThing.getCell() == _sensorRotationEffCell))
-					lastSensor = (Sensor *)dungeon.getThingData(lastSensorThing);
+					lastSensor = dungeon.getThingData(lastSensorThing);
 				lastSensorThing = dungeon.getNextThing(lastSensorThing);
 			}
-			firstSensor->setNextThing(lastSensor->getNextThing());
-			lastSensor->setNextThing(firstSensorThing);
+			SENSOR_setNextThing(firstSensor, SENSOR_nextThing(lastSensor));
+			SENSOR_setNextThing(lastSensor, firstSensorThing);
 		}
 		break;
 	default:

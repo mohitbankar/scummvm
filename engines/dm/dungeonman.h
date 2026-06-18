@@ -368,43 +368,39 @@ public:
 	void setVisible(bool visible) { _textDataRef = (_textDataRef & ~1) | (visible ? 1 : 0); }
 }; // @ TEXTSTRING
 
-class Sensor {
-	Thing _nextThing;
-	uint16 _datAndType;
-	uint16 _attributes; // A
-	uint16 _action; // B
-public:
-	explicit Sensor(uint16 *rawDat) : _nextThing(rawDat[0]), _datAndType(rawDat[1]), _attributes(rawDat[2]), _action(rawDat[3]) {}
+// @ SENSOR
+#define SENSOR_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define SENSOR_setNextThing(address, val) WRITE_LE_UINT16(address, (val).toUint16())
+#define SENSOR_dataAndType(address) READ_LE_UINT16((address) + 2)
+#define SENSOR_setDataAndType(address, val) WRITE_LE_UINT16((address) + 2, (val))
+#define SENSOR_attributes(address) READ_LE_UINT16((address) + 4)
+#define SENSOR_action(address) READ_LE_UINT16((address) + 6)
 
-	Thing getNextThing() { return _nextThing; }
-	void setNextThing(Thing thing) { _nextThing = thing; }
-	SensorType getType() { return (SensorType)(_datAndType & 0x7F); } // @ M39_TYPE
-	uint16 getData() { return (_datAndType >> 7) & 0x1FF; } // @ M40_DATA
-	static uint16 getDataMask1(uint16 data) { return (data >> 7) & 0xF; } // @ M42_MASK1
-	static uint16 getDataMask2(uint16 data) { return (data >> 11) & 0xF; } // @ M43_MASK2
-	void setData(uint16 dat) { _datAndType = (_datAndType & 0x7F) | (dat << 7); } // @ M41_SET_DATA
-	void setTypeDisabled() { _datAndType &= 0xFF80; } // @ M44_SET_TYPE_DISABLED
+#define SENSOR_type(address) ((SensorType)(SENSOR_dataAndType(address) & 0x7F))
+#define SENSOR_data(address) ((SENSOR_dataAndType(address) >> 7) & 0x1FF)
+#define SENSOR_setData(address, dat) SENSOR_setDataAndType(address, (SENSOR_dataAndType(address) & 0x7F) | ((dat) << 7))
+#define SENSOR_setTypeDisabled(address) SENSOR_setDataAndType(address, SENSOR_dataAndType(address) & 0xFF80)
+#define SENSOR_setDatAndTypeWithOr(address, val) SENSOR_setDataAndType(address, SENSOR_dataAndType(address) | (val))
 
-	bool getAttrOnlyOnce() { return (_attributes >> 2) & 1; }
-	uint16 getAttrEffectA() { return (_attributes >> 3) & 0x3; }
-	bool getAttrRevertEffectA() { return (_attributes >> 5) & 0x1; }
-	bool getAttrAudibleA() { return (_attributes >> 6) & 0x1; }
-	uint16 getAttrValue() { return (_attributes >> 7) & 0xF; }
-	bool getAttrLocalEffect() { return (_attributes >> 11) & 1; }
-	uint16 getAttrOrnOrdinal() { return _attributes >> 12; }
+#define SENSOR_getAttrOnlyOnce(address) ((SENSOR_attributes(address) >> 2) & 1)
+#define SENSOR_getAttrEffectA(address) ((SENSOR_attributes(address) >> 3) & 0x3)
+#define SENSOR_getAttrRevertEffectA(address) ((SENSOR_attributes(address) >> 5) & 0x1)
+#define SENSOR_getAttrAudibleA(address) ((SENSOR_attributes(address) >> 6) & 0x1)
+#define SENSOR_getAttrValue(address) ((SENSOR_attributes(address) >> 7) & 0xF)
+#define SENSOR_getAttrLocalEffect(address) ((SENSOR_attributes(address) >> 11) & 1)
+#define SENSOR_getAttrOrnOrdinal(address) (SENSOR_attributes(address) >> 12)
 
-	uint16 getActionTargetMapY() { return (_action >> 11); }
-	uint16 getActionTargetMapX() { return (_action >> 6) & 0x1F; }
-	Cell getActionTargetCell() { return (Cell)((_action >> 4) & 3); }
-	uint16 getActionHealthMultiplier() { return ((_action >> 4) & 0xF); } // @ M45_HEALTH_MULTIPLIER
-	uint16 getActionTicks() { return ((_action >> 4) >> 4) & 0xFFF; } // @ M46_TICKS
-	uint16 getActionKineticEnergy() { return ((_action >> 4) & 0xFF); }// @ M47_KINETIC_ENERGY
-	uint16 getActionStepEnergy() { return ((_action >> 4) >> 8) & 0xFF; }// @ M48_STEP_ENERGY
-	uint16 getActionLocalEffect() { return (_action >> 4); } // @ M49_LOCAL_EFFECT
+#define SENSOR_getActionTargetMapY(address) (SENSOR_action(address) >> 11)
+#define SENSOR_getActionTargetMapX(address) ((SENSOR_action(address) >> 6) & 0x1F)
+#define SENSOR_getActionTargetCell(address) ((Cell)((SENSOR_action(address) >> 4) & 3))
+#define SENSOR_getActionHealthMultiplier(address) ((SENSOR_action(address) >> 4) & 0xF)
+#define SENSOR_getActionTicks(address) (((SENSOR_action(address) >> 4) >> 4) & 0xFFF)
+#define SENSOR_getActionKineticEnergy(address) ((SENSOR_action(address) >> 4) & 0xFF)
+#define SENSOR_getActionStepEnergy(address) (((SENSOR_action(address) >> 4) >> 8) & 0xFF)
+#define SENSOR_getActionLocalEffect(address) (SENSOR_action(address) >> 4)
 
-	void setDatAndTypeWithOr(uint16 val) { _datAndType |= val;  }
-
-}; // @ SENSOR
+#define SENSOR_getDataMask1(data) (((data) >> 7) & 0xF)
+#define SENSOR_getDataMask2(data) (((data) >> 11) & 0xF)
 
 // @ WEAPON
 #define WEAPON_nextThing(address) (Thing(READ_LE_UINT16(address)))

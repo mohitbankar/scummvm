@@ -907,16 +907,16 @@ T0172010_ClosedFakeWall:
 			ThingType curThingType = curThing.getType();
 			int16 AL0310_i_SideIndex = _vm->normalizeModulo4(curThing.getCell() - dir);
 			if (AL0310_i_SideIndex) { /* Invisible on the back wall if 0 */
-				Sensor *curSensor = (Sensor *)getThingData(curThing);
+				byte *curSensor = getThingData(curThing);
 				if (curThingType == kDMstringTypeText) {
 					if (((TextString *)curSensor)->isVisible()) {
 						aspectArray[AL0310_i_SideIndex + 1] = _currMapInscriptionWallOrnIndex + 1;
 						displMan._inscriptionThing = curThing; /* BUG0_76 The same text is drawn on multiple sides of a wall square. The engine stores only a single text to draw on a wall in a global variable. Even if different texts are placed on different sides of the wall, the same text is drawn on each affected side */
 					}
 				} else {
-					aspectArray[AL0310_i_SideIndex + 1] = curSensor->getAttrOrnOrdinal();
-					if (curSensor->getType() == kDMSensorWallChampionPortrait) {
-						displMan._championPortraitOrdinal = _vm->indexToOrdinal(curSensor->getData());
+					aspectArray[AL0310_i_SideIndex + 1] = SENSOR_getAttrOrnOrdinal(curSensor);
+					if (SENSOR_type(curSensor) == kDMSensorWallChampionPortrait) {
+						displMan._championPortraitOrdinal = _vm->indexToOrdinal(SENSOR_data(curSensor));
 					}
 				}
 			}
@@ -958,8 +958,8 @@ T0172010_ClosedFakeWall:
 
 		while ((curThing != _vm->_thingEndOfList) && (curThing.getType() <= kDMThingTypeSensor)) {
 			if (curThing.getType() == kDMThingTypeSensor) {
-				Sensor *curSensor = (Sensor *)getThingData(curThing);
-				aspectArray[kDMSquareAspectFloorOrn] = curSensor->getAttrOrnOrdinal();
+				byte *curSensor = getThingData(curThing);
+				aspectArray[kDMSquareAspectFloorOrn] = SENSOR_getAttrOrnOrdinal(curSensor);
 			}
 			curThing = getNextThing(curThing);
 		}
@@ -1464,8 +1464,8 @@ Thing DungeonMan::getDiscardThing(uint16 thingType) {
 					do {
 						ThingType squareThingType = squareThing.getType();
 						if (squareThingType == kDMThingTypeSensor) {
-							Thing *squareThingData = (Thing *)getThingData(squareThing);
-							if (((Sensor *)squareThingData)->getType()) /* If sensor is not disabled */
+							byte *squareThingData = getThingData(squareThing);
+							if (SENSOR_type(squareThingData)) /* If sensor is not disabled */
 								break;
 						} else if (squareThingType == thingType) {
 							byte *squareThingData = getThingData(squareThing);
