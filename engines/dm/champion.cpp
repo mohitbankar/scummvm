@@ -569,12 +569,12 @@ void ChampionMan::addObjectInSlot(ChampionIndex champIndex, Thing thing, Champio
 		}
 	} else if (slotIndex == kDMSlotNeck) {
 		if ((iconIndex >= kDMIconIndiceJunkIllumuletUnequipped) && (iconIndex <= kDMIconIndiceJunkIllumuletEquipped)) {
-			((Junk *)rawObjPtr)->setChargeCount(1);
+			JUNK_setChargeCount(rawObjPtr, 1);
 			_party._magicalLightAmount += _lightPowerToLightAmount[2];
 			invMan.setDungeonViewPalette();
 			iconIndex = (IconIndice)(iconIndex + 1);
 		} else if ((iconIndex >= kDMIconIndiceJunkJewelSymalUnequipped) && (iconIndex <= kDMIconIndiceJunkJewelSymalEquipped)) {
-			((Junk *)rawObjPtr)->setChargeCount(1);
+			JUNK_setChargeCount(rawObjPtr, 1);
 			iconIndex = (IconIndice)(iconIndex + 1);
 		}
 	}
@@ -690,11 +690,11 @@ Thing ChampionMan::getObjectRemovedFromSlot(uint16 champIndex, uint16 slotIndex)
 	byte *curWeapon = dungeon.getThingData(curThing);
 	if (slotIndex == kDMSlotNeck) {
 		if ((curIconIndex >= kDMIconIndiceJunkIllumuletUnequipped) && (curIconIndex <= kDMIconIndiceJunkIllumuletEquipped)) {
-			((Junk *)curWeapon)->setChargeCount(0);
+			JUNK_setChargeCount(curWeapon, 0);
 			_party._magicalLightAmount -= _lightPowerToLightAmount[2];
 			inventory.setDungeonViewPalette();
 		} else if ((curIconIndex >= kDMIconIndiceJunkJewelSymalUnequipped) && (curIconIndex <= kDMIconIndiceJunkJewelSymalEquipped)) {
-			((Junk *)curWeapon)->setChargeCount(0);
+			JUNK_setChargeCount(curWeapon, 0);
 		}
 	}
 
@@ -1511,10 +1511,10 @@ void ChampionMan::championKill(uint16 champIndex) {
 	Thing unusedThing = dungeon.getUnusedThing(kDMMaskChampionBones | kDMThingTypeJunk);
 	uint16 curCell = 0;
 	if (unusedThing != _vm->_thingNone) {
-		Junk *L0966_ps_Junk = (Junk *)dungeon.getThingData(unusedThing);
-		L0966_ps_Junk->setType(kDMJunkTypeBones);
-		L0966_ps_Junk->setDoNotDiscard(true);
-		L0966_ps_Junk->setChargeCount(champIndex);
+		byte *L0966_ps_Junk = dungeon.getThingData(unusedThing);
+		JUNK_setType(L0966_ps_Junk, kDMJunkTypeBones);
+		JUNK_setDoNotDiscard(L0966_ps_Junk, true);
+		JUNK_setChargeCount(L0966_ps_Junk, champIndex);
 		curCell = curChampion->_cell;
 		_vm->_moveSens->getMoveResult(_vm->thingWithNewCell(unusedThing, curCell), kDMMapXNotOnASquare, 0, dungeon._partyMapX, dungeon._partyMapY);
 	}

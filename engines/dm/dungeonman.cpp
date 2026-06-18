@@ -1271,9 +1271,9 @@ uint16 DungeonMan::getObjectWeight(Thing thing) {
 		weight = _armourInfos[ARMOUR_type(junk)]._weight;
 		break;
 	case kDMThingTypeJunk:
-		weight = junkInfo[((Junk *)junk)->getType()];
-		if (((Junk *)junk)->getType() == kDMJunkTypeWaterskin)
-			weight += ((Junk *)junk)->getChargeCount() << 1;
+		weight = junkInfo[JUNK_type(junk)];
+		if (JUNK_type(junk) == kDMJunkTypeWaterskin)
+			weight += JUNK_chargeCount(junk) << 1;
 
 		break;
 	case kDMThingTypeContainer:
@@ -1308,7 +1308,7 @@ int16 DungeonMan::getObjectInfoIndex(Thing thing) {
 	case kDMThingTypeContainer:
 		return kDMObjectInfoIndexFirstContainer + Container((uint16 *)rawType).getType();
 	case kDMThingTypeJunk:
-		return kDMObjectInfoIndexFirstJunk + Junk((uint16 *)rawType).getType();
+		return kDMObjectInfoIndexFirstJunk + JUNK_type(rawType);
 	case kDMThingTypeWeapon:
 		return kDMObjectInfoIndexFirstWeapon + WEAPON_type(rawType);
 	case kDMThingTypeArmour:
@@ -1500,7 +1500,7 @@ Thing DungeonMan::getDiscardThing(uint16 thingType) {
 								_vm->_moveSens->getMoveResult(squareThing, currMapX, currMapY, kDMMapXNotOnASquare, 0);
 								break;
 							case kDMThingTypeJunk:
-								if (((Junk *)squareThingData)->getDoNotDiscard())
+								if (JUNK_doNotDiscard(squareThingData))
 									continue;
 
 								setCurrentMap(mapIndex);
@@ -1681,7 +1681,7 @@ Thing DungeonMan::getObjForProjectileLaucherOrObjGen(uint16 iconIndex) {
 		return _vm->_thingNone;
 
 	byte *junkPtr = getThingData(unusedThing);
-	((Junk *)junkPtr)->setType(junkType); /* Also works for WEAPON in cases other than Boulder */
+	JUNK_setType(junkPtr, junkType); /* Also works for WEAPON in cases other than Boulder */
 	if ((iconIndex == kDMIconIndiceWeaponTorchUnlit) && WEAPON_isLit(junkPtr)) /* BUG0_65 Torches created by object generator or projectile launcher sensors have no charges. Charges are only defined if the Torch is lit which is not possible at the time it is created */
 		WEAPON_setChargeCount(junkPtr, 15);
 

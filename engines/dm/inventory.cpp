@@ -514,10 +514,10 @@ void InventoryMan::drawPanelObject(Thing thingToDraw, bool pressingEye) {
 			switch (_vm->getGameLanguage()) { // localized
 			case Common::FR_FRA:
 				// Fix original bug dur to a cut&paste error: string was concatenated then overwritten by the name
-				str = Common::String::format("%s %s", objMan._objectNames[iconIndex], champMan._champions[((Junk *)rawThingPtr)->getChargeCount()]._name);
+				str = Common::String::format("%s %s", objMan._objectNames[iconIndex], champMan._champions[JUNK_chargeCount(rawThingPtr)]._name);
 				break;
 			default: // German and English versions are the same
-				str = Common::String::format("%s %s", champMan._champions[((Junk *)rawThingPtr)->getChargeCount()]._name, objMan._objectNames[iconIndex]);
+				str = Common::String::format("%s %s", champMan._champions[JUNK_chargeCount(rawThingPtr)]._name, objMan._objectNames[iconIndex]);
 				break;
 			}
 
@@ -581,16 +581,16 @@ void InventoryMan::drawPanelObject(Thing thingToDraw, bool pressingEye) {
 				const char *descStringDE[4] = {"(LEER)", "(FAST LEER)", "(FAST VOLL)", "(VOLL)"};
 				const char *descStringFR[4] = {"(VIDE)", "(PRESQUE VIDE)", "(PRESQUE PLEINE)", "(PLEINE)"};
 
-				Junk *junk = (Junk *)rawThingPtr;
+				byte *junk = rawThingPtr;
 				switch (_vm->getGameLanguage()) { // localized
 				case Common::DE_DEU:
-					descString = descStringDE[junk->getChargeCount()];
+					descString = descStringDE[JUNK_chargeCount(junk)];
 					break;
 				case Common::FR_FRA:
-					descString = descStringFR[junk->getChargeCount()];
+					descString = descStringFR[JUNK_chargeCount(junk)];
 					break;
 				default:
-					descString = descStringEN[junk->getChargeCount()];
+					descString = descStringEN[JUNK_chargeCount(junk)];
 					break;
 				}
 
@@ -619,9 +619,8 @@ void InventoryMan::drawPanelObject(Thing thingToDraw, bool pressingEye) {
 
 				drawPanelObjectDescriptionString(str.c_str());
 			} else {
-				Junk *junk = (Junk *)rawThingPtr;
 				potentialAttribMask = kDMDescriptionMaskConsumable;
-				actualAttribMask = dungeon._objectInfos[kDMObjectInfoIndexFirstJunk + junk->getType()].getAllowedSlots();
+				actualAttribMask = dungeon._objectInfos[kDMObjectInfoIndexFirstJunk + JUNK_type(rawThingPtr)].getAllowedSlots();
 			}
 			break;
 		}
@@ -928,16 +927,16 @@ void InventoryMan::clickOnMouth() {
 	byte *junkData = dungeon.getThingData(handThing);
 	bool removeObjectFromLeaderHand;
 	if ((iconIndex >= kDMIconIndiceJunkWater) && (iconIndex <= kDMIconIndiceJunkWaterSkin)) {
-		if (!(((Junk *)junkData)->getChargeCount()))
+		if (!(JUNK_chargeCount(junkData)))
 			return;
 
 		curChampion->_water = MIN(curChampion->_water + 800, 2048);
-		((Junk *)junkData)->setChargeCount(((Junk *)junkData)->getChargeCount() - 1);
+		JUNK_setChargeCount(junkData, JUNK_chargeCount(junkData) - 1);
 		removeObjectFromLeaderHand = false;
 	} else if (handThingType == kDMThingTypePotion)
 		removeObjectFromLeaderHand = false;
 	else {
-		((Junk *)junkData)->setNextThing(_vm->_thingNone);
+		JUNK_setNextThing(junkData, _vm->_thingNone);
 		removeObjectFromLeaderHand = true;
 	}
 	_vm->_eventMan->showMouse();

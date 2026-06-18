@@ -1169,7 +1169,7 @@ void EventManager::commandProcessType80ClickInDungeonView(int16 posX, int16 posY
 		int16 mapY = _vm->_dungeonMan->_partyMapY + _vm->_dirIntoStepCountNorth[_vm->_dungeonMan->_partyDir];
 
 		if (_vm->_championMan->_leaderEmptyHanded) {
-			Junk *junkPtr = (Junk*)_vm->_dungeonMan->getSquareFirstThingData(mapX, mapY);
+			byte *junkPtr = _vm->_dungeonMan->getSquareFirstThingData(mapX, mapY);
 			if ((((Door*)junkPtr)->hasButton()) && _vm->_dungeonMan->_dungeonViewClickableBoxes[kDMViewCellDoorButtonOrWallOrn].isPointInside(posX, posY - 33)) {
 				_vm->_stopWaitingForPlayerInput = true;
 				_vm->_sound->requestPlay(kDMSoundIndexSwitch, _vm->_dungeonMan->_partyMapX, _vm->_dungeonMan->_partyMapY, kDMSoundModePlayIfPrioritized);
@@ -1210,7 +1210,7 @@ void EventManager::commandProcessType80ClickInDungeonView(int16 posX, int16 posY
 						uint16 iconIdx = _vm->_objectMan->getIconIndex(thingHandObject);
 						uint16 weight = _vm->_dungeonMan->getObjectWeight(thingHandObject);
 						if ((iconIdx >= kDMIconIndiceJunkWater) && (iconIdx <= kDMIconIndiceJunkWaterSkin))
-							((Junk *)junkPtr)->setChargeCount(3); /* Full */
+							JUNK_setChargeCount(junkPtr, 3); /* Full */
 						else if (iconIdx == kDMIconIndicePotionEmptyFlask)
 							POTION_setType(junkPtr, kDMPotionTypeWaterFlask);
 						else {
@@ -1397,11 +1397,11 @@ void EventManager::clickInDungeonViewDropLeaderHandObject(uint16 viewCell) {
 	Thing removedThing = _vm->_championMan->getObjectRemovedFromLeaderHand();
 	_vm->_moveSens->getMoveResult(_vm->thingWithNewCell(removedThing, currCell), kDMMapXNotOnASquare, 0, mapX, mapY);
 	if (droppingIntoAnAlcove && _vm->_dungeonMan->_isFacingViAltar && (_vm->_objectMan->getIconIndex(removedThing) == kDMIconIndiceJunkChampionBones)) {
-		Junk *removedJunk = (Junk*)_vm->_dungeonMan->getThingData(removedThing);
+		byte *removedJunk = _vm->_dungeonMan->getThingData(removedThing);
 		TimelineEvent newEvent;
 		newEvent._mapTime = _vm->setMapAndTime(_vm->_dungeonMan->_partyMapIndex, _vm->_gameTime + 1);
 		newEvent._type = kDMEventTypeViAltarRebirth;
-		newEvent._priority = removedJunk->getChargeCount();
+		newEvent._priority = JUNK_chargeCount(removedJunk);
 		newEvent._Bu._location._mapX = mapX;
 		newEvent._Bu._location._mapY = mapY;
 		newEvent._Cu.A._cell = currCell;

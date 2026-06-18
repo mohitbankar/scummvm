@@ -487,22 +487,18 @@ public:
 	Thing &getNextThing() { return _nextThing; }
 }; // @ CONTAINER
 
-class Junk {
-	Thing _nextThing;
-	uint16 _attributes;
-public:
-	explicit Junk(uint16 *rawDat) : _nextThing(rawDat[0]), _attributes(rawDat[1]) {}
+// @ JUNK
+#define JUNK_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define JUNK_setNextThing(address, val) WRITE_LE_UINT16(address, (val).toUint16())
+#define JUNK_attributes(address) READ_LE_UINT16((address) + 2)
+#define JUNK_setAttributes(address, val) WRITE_LE_UINT16((address) + 2, val)
 
-	JunkType getType() { return (JunkType)(_attributes & 0x7F); }
-	void setType(uint16 val) { _attributes = (_attributes & ~0x7F) | (val & 0x7F); }
-	uint16 getChargeCount() { return (_attributes >> 14) & 0x3; }
-	void setChargeCount(uint16 val) { _attributes = (_attributes & ~(0x3 << 14)) | ((val & 0x3) << 14); }
-	uint16 getDoNotDiscard() { return (_attributes >> 7) & 1; }
-	void setDoNotDiscard(uint16 val) { _attributes = (_attributes & ~(1 << 7)) | ((val & 1) << 7); }
-
-	Thing getNextThing() { return _nextThing; }
-	void setNextThing(Thing thing) { _nextThing = thing; }
-}; // @ JUNK
+#define JUNK_type(address) ((JunkType)(JUNK_attributes(address) & 0x7F))
+#define JUNK_setType(address, val) JUNK_setAttributes(address, (JUNK_attributes(address) & ~0x7F) | ((val) & 0x7F))
+#define JUNK_chargeCount(address) ((JUNK_attributes(address) >> 14) & 0x3)
+#define JUNK_setChargeCount(address, val) JUNK_setAttributes(address, (JUNK_attributes(address) & ~(0x3 << 14)) | (((val) & 0x3) << 14))
+#define JUNK_doNotDiscard(address) ((JUNK_attributes(address) >> 7) & 1)
+#define JUNK_setDoNotDiscard(address, val) JUNK_setAttributes(address, (JUNK_attributes(address) & ~(1 << 7)) | (((val) & 1) << 7))
 
 class Projectile {
 public:

@@ -668,8 +668,8 @@ int16 MenuMan::getChampionSpellCastResult(uint16 champIndex) {
 			if (unusedObject == _vm->_thingNone)
 				break;
 
-			Junk *junkData = (Junk *)dungeon.getThingData(unusedObject);
-			junkData->setType(kDMJunkTypeZokathra);
+			byte *junkData = dungeon.getThingData(unusedObject);
+			JUNK_setType(junkData, kDMJunkTypeZokathra);
 			ChampionSlot slotIndex;
 			if (curChampion->_slots[kDMSlotReadyHand] == _vm->_thingNone)
 				slotIndex = kDMSlotReadyHand;
@@ -1409,8 +1409,8 @@ void MenuMan::decrementCharges(Champion *champ) {
 		}
 		break;
 	case kDMThingTypeJunk:
-		if (((Junk *)slotActionData)->getChargeCount()) {
-			((Junk *)slotActionData)->setChargeCount(((Junk *)slotActionData)->getChargeCount() - 1);
+		if (JUNK_chargeCount(slotActionData)) {
+			JUNK_setChargeCount(slotActionData, JUNK_chargeCount(slotActionData) - 1);
 		}
 		break;
 	default:
@@ -1759,7 +1759,7 @@ int16 MenuMan::getActionObjectChargeCount() {
 	case kDMThingTypeArmour:
 		return ARMOUR_chargeCount(junkData);
 	case kDMThingTypeJunk:
-		return ((Junk *)junkData)->getChargeCount();
+		return JUNK_chargeCount(junkData);
 	default:
 		return 1;
 	}

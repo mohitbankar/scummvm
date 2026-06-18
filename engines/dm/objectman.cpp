@@ -165,7 +165,7 @@ IconIndice ObjectMan::getIconIndex(Thing thing) {
 			case kDMIconIndiceJunkWater:
 			case kDMIconIndiceJunkIllumuletUnequipped:
 			case kDMIconIndiceJunkJewelSymalUnequipped:
-				if (((Junk *)junkThing)->getChargeCount())
+				if (JUNK_chargeCount(junkThing))
 					iconIndex++;
 				break;
 			case kDMIconIndiceWeaponBoltBladeStormEmpty:
@@ -239,17 +239,17 @@ void ObjectMan::drawLeaderObjectName(Thing thing) {
 	Common::String objectName;
 	int16 iconIndex = getIconIndex(thing);
 	if (iconIndex == kDMIconIndiceJunkChampionBones) {
-		Junk *junk = (Junk*)_vm->_dungeonMan->getThingData(thing);
+		byte *junk = _vm->_dungeonMan->getThingData(thing);
 		Common::String champBonesName;
 
 		switch (_vm->getGameLanguage()) { // localized
 		case Common::FR_FRA:
 			// Fix original bug: strcpy was coming after strcat
 			champBonesName = Common::String(_objectNames[iconIndex]);
-			champBonesName += Common::String(_vm->_championMan->_champions[junk->getChargeCount()]._name);
+			champBonesName += Common::String(_vm->_championMan->_champions[JUNK_chargeCount(junk)]._name);
 			break;
 		default: // English and German version are the same
-			champBonesName = Common::String(_vm->_championMan->_champions[junk->getChargeCount()]._name);
+			champBonesName = Common::String(_vm->_championMan->_champions[JUNK_chargeCount(junk)]._name);
 			champBonesName += Common::String(_objectNames[iconIndex]);
 			break;
 		}
