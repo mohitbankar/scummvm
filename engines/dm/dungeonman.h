@@ -464,17 +464,11 @@ public:
 #define POTION_setPower(address, val) POTION_setAttributes(address, (POTION_attributes(address) & ~0xFF) | ((val) & 0xFF))
 #define POTION_doNotDiscard(address) ((POTION_attributes(address) >> 15) & 1)
 
-class Container {
-	Thing _nextThing;
-	Thing _slot;
-	uint16 _type;
-public:
-	explicit Container(uint16 *rawDat) : _nextThing(rawDat[0]), _slot(rawDat[1]), _type(rawDat[2]) {}
-
-	uint16 getType() { return (_type >> 1) & 0x3; }
-	Thing &getSlot() { return _slot; }
-	Thing &getNextThing() { return _nextThing; }
-}; // @ CONTAINER
+// @ CONTAINER
+#define CONTAINER_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define CONTAINER_slot(address) (Thing(READ_LE_UINT16((address) + 2)))
+#define CONTAINER_setSlot(address, val) WRITE_LE_UINT16((address) + 2, (val).toUint16())
+#define CONTAINER_type(address) ((READ_LE_UINT16((address) + 4) >> 1) & 0x3)
 
 // @ JUNK
 #define JUNK_nextThing(address) (Thing(READ_LE_UINT16(address)))

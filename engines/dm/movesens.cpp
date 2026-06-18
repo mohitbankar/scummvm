@@ -888,8 +888,8 @@ bool MovesensMan::isObjectInPartyPossession(int16 objectType) {
 					return true;
 
 				if (curObjectType == kDMIconIndiceContainerChestClosed) {
-					Container *container = (Container *)dungeon.getThingData(curThing);
-					curThing = container->getSlot();
+					byte *container = dungeon.getThingData(curThing);
+					curThing = CONTAINER_slot(container);
 					while (curThing != _vm->_thingEndOfList) {
 						if (_vm->_objectMan->getObjectType(curThing) == objectType)
 							return true;

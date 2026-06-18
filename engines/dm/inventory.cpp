@@ -281,9 +281,9 @@ void InventoryMan::closeChest() {
 	bool processFirstChestSlot = true;
 	if (_openChest == _vm->_thingNone)
 		return;
-	Container *container = (Container *)dunMan.getThingData(_openChest);
+	byte *container = dunMan.getThingData(_openChest);
 	_openChest = _vm->_thingNone;
-	container->getSlot() = _vm->_thingEndOfList;
+	CONTAINER_setSlot(container, _vm->_thingEndOfList);
 	Thing prevThing;
 	for (int16 chestSlotIndex = 0; chestSlotIndex < 8; ++chestSlotIndex) {
 		Thing thing = _chestSlots[chestSlotIndex];
@@ -293,7 +293,7 @@ void InventoryMan::closeChest() {
 			if (processFirstChestSlot) {
 				processFirstChestSlot = false;
 				WRITE_LE_UINT16(dunMan.getThingData(thing), _vm->_thingEndOfList.toUint16());
-				container->getSlot() = prevThing = thing;
+				CONTAINER_setSlot(container, prevThing = thing);
 			} else {
 				dunMan.linkThingToList(thing, prevThing, kDMMapXNotOnASquare, 0);
 				prevThing = thing;
@@ -361,7 +361,7 @@ void InventoryMan::drawPanelScroll(byte *scroll) {
 	}
 }
 
-void InventoryMan::openAndDrawChest(Thing thingToOpen, Container *chest, bool isPressingEye) {
+void InventoryMan::openAndDrawChest(Thing thingToOpen, byte *chest, bool isPressingEye) {
 	DisplayMan &dispMan = *_vm->_displayMan;
 	ObjectMan &objMan = *_vm->_objectMan;
 
@@ -378,7 +378,7 @@ void InventoryMan::openAndDrawChest(Thing thingToOpen, Container *chest, bool is
 	dispMan.blitToViewport(dispMan.getNativeBitmapOrGraphic(kDMGraphicIdxPanelOpenChest),
 							   _boxPanel, k72_byteWidth, kDMColorRed, 73);
 	int16 chestSlotIndex = 0;
-	Thing thing = chest->getSlot();
+	Thing thing = CONTAINER_slot(chest);
 	int16 thingCount = 0;
 	while (thing != _vm->_thingEndOfList) {
 		if (++thingCount > 8)
@@ -500,7 +500,7 @@ void InventoryMan::drawPanelObject(Thing thingToDraw, bool pressingEye) {
 	if (thingType == kDMThingTypeScroll)
 		drawPanelScroll(rawThingPtr);
 	else if (thingType == kDMThingTypeContainer)
-		openAndDrawChest(thingToDraw, (Container *)rawThingPtr, pressingEye);
+		openAndDrawChest(thingToDraw, rawThingPtr, pressingEye);
 	else {
 		IconIndice iconIndex = objMan.getIconIndex(thingToDraw);
 		dispMan.blitToViewport(dispMan.getNativeBitmapOrGraphic(kDMGraphicIdxPanelEmpty),

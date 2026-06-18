@@ -1278,7 +1278,7 @@ uint16 DungeonMan::getObjectWeight(Thing thing) {
 		break;
 	case kDMThingTypeContainer:
 		weight = 50;
-		thing = ((Container *)junk)->getSlot();
+		thing = CONTAINER_slot(junk);
 		while (thing != _vm->_thingEndOfList) {
 			weight += getObjectWeight(thing);
 			thing = getNextThing(thing);
@@ -1306,7 +1306,7 @@ int16 DungeonMan::getObjectInfoIndex(Thing thing) {
 	case kDMThingTypeScroll:
 		return kDMObjectInfoIndexFirstScroll;
 	case kDMThingTypeContainer:
-		return kDMObjectInfoIndexFirstContainer + Container((uint16 *)rawType).getType();
+		return kDMObjectInfoIndexFirstContainer + CONTAINER_type(rawType);
 	case kDMThingTypeJunk:
 		return kDMObjectInfoIndexFirstJunk + JUNK_type(rawType);
 	case kDMThingTypeWeapon:
