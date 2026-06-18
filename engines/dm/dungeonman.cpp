@@ -1038,8 +1038,8 @@ byte *DungeonMan::getThingData(Thing thing) {
 	return (byte *)(_thingData[thing.getType()] + thing.getIndex() * _thingDataWordCount[thing.getType()]);
 }
 
-uint16 *DungeonMan::getSquareFirstThingData(int16 mapX, int16 mapY) {
-	return (uint16 *)getThingData(getSquareFirstThing(mapX, mapY));
+byte *DungeonMan::getSquareFirstThingData(int16 mapX, int16 mapY) {
+	return getThingData(getSquareFirstThing(mapX, mapY));
 }
 
 Thing DungeonMan::getNextThing(Thing thing) {

@@ -40,7 +40,6 @@ enum SensorEffect {
 
 namespace DM {
 	class Sensor;
-	class Teleporter;
 
 	class MovesensMan {
 	DMEngine *_vm;
@@ -64,8 +63,8 @@ public:
 	bool moveIsKilledByProjectileImpact(int16 srcMapX, int16 srcMapY, int16 destMapX, int16 destMapY, Thing thing); // @ F0266_MOVE_IsKilledByProjectileImpact
 	void addEvent(TimelineEventType type, byte mapX, byte mapY, Cell cell, SensorEffect effect, int32 time); // @ F0268_SENSOR_AddEvent
 	int16 getSound(CreatureType creatureType); // @ F0514_MOVE_GetSound
-	int16 getTeleporterRotatedGroupResult(Teleporter *teleporter, Thing thing, uint16 mapIndex);// @ F0262_MOVE_GetTeleporterRotatedGroupResult
-	Thing getTeleporterRotatedProjectileThing(Teleporter *teleporter, Thing projectileThing); // @ F0263_MOVE_GetTeleporterRotatedProjectileThing
+	int16 getTeleporterRotatedGroupResult(byte *teleporter, Thing thing, uint16 mapIndex);// @ F0262_MOVE_GetTeleporterRotatedGroupResult
+	Thing getTeleporterRotatedProjectileThing(byte *teleporter, Thing projectileThing); // @ F0263_MOVE_GetTeleporterRotatedProjectileThing
 	void processThingAdditionOrRemoval(uint16 mapX, uint16 mapY, Thing thing, bool partySquare, bool addThing);// @ F0276_SENSOR_ProcessThingAdditionOrRemoval
 	bool isObjectInPartyPossession(int16 objectType); // @ F0274_SENSOR_IsObjectInPartyPossession
 	void triggerEffect(Sensor *sensor, SensorEffect effect, int16 mapX, int16 mapY, uint16 cell); // @ F0272_SENSOR_TriggerEffect

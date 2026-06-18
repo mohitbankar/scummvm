@@ -343,21 +343,18 @@ public:
 #define DOOR_ornOrdinal(address) ((DOOR_attributes(address) >> 1) & 0xF)
 #define DOOR_type(address) (DOOR_attributes(address) & 1)
 
-class Teleporter {
-	Thing _nextThing;
-	uint16 _attributes;
-	uint16 _destMapIndex;
-public:
-	explicit Teleporter(uint16 *rawDat) : _nextThing(rawDat[0]), _attributes(rawDat[1]), _destMapIndex(rawDat[2]) {}
-	Thing getNextThing() { return _nextThing; }
-	bool isAudible() { return (_attributes >> 15) & 1; }
-	TeleporterScope getScope() { return (TeleporterScope)((_attributes >> 13) & 3); }
-	bool getAbsoluteRotation() { return (_attributes >> 12) & 1; }
-	Direction getRotation() { return (Direction)((_attributes >> 10) & 3); }
-	byte getTargetMapY() { return (_attributes >> 5) & 0x1F; }
-	byte getTargetMapX() { return _attributes & 0x1F; }
-	uint16 getTargetMapIndex() { return _destMapIndex >> 8; }
-}; // @ TELEPORTER
+// @ TELEPORTER
+#define TELEPORTER_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define TELEPORTER_attributes(address) READ_LE_UINT16((address) + 2)
+#define TELEPORTER_destMapIndex(address) READ_LE_UINT16((address) + 4)
+
+#define TELEPORTER_isAudible(address) ((TELEPORTER_attributes(address) >> 15) & 1)
+#define TELEPORTER_getScope(address) ((TeleporterScope)((TELEPORTER_attributes(address) >> 13) & 3))
+#define TELEPORTER_getAbsoluteRotation(address) ((TELEPORTER_attributes(address) >> 12) & 1)
+#define TELEPORTER_getRotation(address) ((Direction)((TELEPORTER_attributes(address) >> 10) & 3))
+#define TELEPORTER_getTargetMapY(address) ((TELEPORTER_attributes(address) >> 5) & 0x1F)
+#define TELEPORTER_getTargetMapX(address) (TELEPORTER_attributes(address) & 0x1F)
+#define TELEPORTER_getTargetMapIndex(address) (TELEPORTER_destMapIndex(address) >> 8)
 
 class TextString {
 	Thing _nextThing;
@@ -587,7 +584,7 @@ public:
 	Thing getSquareFirstThing(int16 mapX, int16 mapY); // @ F0161_DUNGEON_GetSquareFirstThing
 	Thing getNextThing(Thing thing); // @ F0159_DUNGEON_GetNextThing(THING P0280_T_Thing)
 	byte *getThingData(Thing thing); // @ F0156_DUNGEON_GetThingData
-	uint16 *getSquareFirstThingData(int16 mapX, int16 mapY); // @ F0157_DUNGEON_GetSquareFirstThingData
+	byte *getSquareFirstThingData(int16 mapX, int16 mapY); // @ F0157_DUNGEON_GetSquareFirstThingData
 
 	// TODO: this does stuff other than load the file!
 	void loadDungeonFile(Common::InSaveFile *file);	// @ F0434_STARTEND_IsLoadDungeonSuccessful_CPSC

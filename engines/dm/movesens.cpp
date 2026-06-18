@@ -254,8 +254,8 @@ bool MovesensMan::getMoveResult(Thing thing, int16 mapX, int16 mapY, int16 destM
 			requiredTeleporterScope = (kDMTeleporterScopeCreatures | kDMTeleporterScopeObjectsOrParty);
 
 		if (thingType == kDMThingTypeProjectile) {
-			Teleporter *L0712_ps_Teleporter = (Teleporter *)dungeon.getThingData(thing);
-			_moveResultDir = (_vm->_timeline->_events[((Projectile *)L0712_ps_Teleporter)->_eventIndex])._Cu._projectile.getDir();
+			byte *L0712_ps_Teleporter = dungeon.getThingData(thing);
+			_moveResultDir = (_vm->_timeline->_events[PROJ_eventIndex(L0712_ps_Teleporter)])._Cu._projectile.getDir();
 		}
 
 		int16 destinationSquareData = 0;
@@ -267,40 +267,40 @@ bool MovesensMan::getMoveResult(Thing thing, int16 mapX, int16 mapY, int16 destM
 				if (!getFlag(destinationSquareData, kDMSquareMaskTeleporterOpen))
 					break;
 
-				Teleporter *teleporter = (Teleporter *)dungeon.getSquareFirstThingData(destMapX, destMapY);
-				if ((teleporter->getScope() == kDMTeleporterScopeCreatures) && (thingType != kDMThingTypeGroup))
+				byte *teleporter = dungeon.getSquareFirstThingData(destMapX, destMapY);
+				if ((TELEPORTER_getScope(teleporter) == kDMTeleporterScopeCreatures) && (thingType != kDMThingTypeGroup))
 					break;
 
-				if ((requiredTeleporterScope != (kDMTeleporterScopeCreatures | kDMTeleporterScopeObjectsOrParty)) && !getFlag(teleporter->getScope(), requiredTeleporterScope))
+				if ((requiredTeleporterScope != (kDMTeleporterScopeCreatures | kDMTeleporterScopeObjectsOrParty)) && !getFlag(TELEPORTER_getScope(teleporter), requiredTeleporterScope))
 					break;
 
-				destinationIsTeleporterTarget = (destMapX == teleporter->getTargetMapX()) && (destMapY == teleporter->getTargetMapY()) && (mapIndexDestination == teleporter->getTargetMapIndex());
-				destMapX = teleporter->getTargetMapX();
-				destMapY = teleporter->getTargetMapY();
-				audibleTeleporter = teleporter->isAudible();
-				dungeon.setCurrentMap(mapIndexDestination = teleporter->getTargetMapIndex());
+				destinationIsTeleporterTarget = (destMapX == TELEPORTER_getTargetMapX(teleporter)) && (destMapY == TELEPORTER_getTargetMapY(teleporter)) && (mapIndexDestination == TELEPORTER_getTargetMapIndex(teleporter));
+				destMapX = TELEPORTER_getTargetMapX(teleporter);
+				destMapY = TELEPORTER_getTargetMapY(teleporter);
+				audibleTeleporter = TELEPORTER_isAudible(teleporter);
+				dungeon.setCurrentMap(mapIndexDestination = TELEPORTER_getTargetMapIndex(teleporter));
 				if (thing == _vm->_thingParty) {
 					dungeon._partyMapX = destMapX;
 					dungeon._partyMapY = destMapY;
-					if (teleporter->isAudible())
+					if (TELEPORTER_isAudible(teleporter))
 						_vm->_sound->requestPlay(kDMSoundIndexBuzz, dungeon._partyMapX, dungeon._partyMapY, kDMSoundModePlayImmediately);
 
 					drawDungeonViewWhileFalling = true;
-					if (teleporter->getAbsoluteRotation())
-						_vm->_championMan->setPartyDirection(teleporter->getRotation());
+					if (TELEPORTER_getAbsoluteRotation(teleporter))
+						_vm->_championMan->setPartyDirection(TELEPORTER_getRotation(teleporter));
 					else
-						_vm->_championMan->setPartyDirection(_vm->normalizeModulo4(dungeon._partyDir + teleporter->getRotation()));
+						_vm->_championMan->setPartyDirection(_vm->normalizeModulo4(dungeon._partyDir + TELEPORTER_getRotation(teleporter)));
 				} else {
 					if (thingType == kDMThingTypeGroup) {
-						if (teleporter->isAudible())
+						if (TELEPORTER_isAudible(teleporter))
 							_vm->_sound->requestPlay(kDMSoundIndexBuzz, destMapX, destMapY, kDMSoundModePlayIfPrioritized);
 
 						moveGroupResult = getTeleporterRotatedGroupResult(teleporter, thing, mapIndexSource);
 					} else {
 						if (thingType == kDMThingTypeProjectile)
 							thing = getTeleporterRotatedProjectileThing(teleporter, thing);
-						else if (!(teleporter->getAbsoluteRotation()) && (mapX != -2))
-							thing = _vm->thingWithNewCell(thing, _vm->normalizeModulo4(thing.getCell() + teleporter->getRotation()));
+						else if (!(TELEPORTER_getAbsoluteRotation(teleporter)) && (mapX != -2))
+							thing = _vm->thingWithNewCell(thing, _vm->normalizeModulo4(thing.getCell() + TELEPORTER_getRotation(teleporter)));
 					}
 				}
 				if (destinationIsTeleporterTarget)
@@ -647,13 +647,13 @@ int16 MovesensMan::getSound(CreatureType creatureType) {
 	return 35;
 }
 
-int16 MovesensMan::getTeleporterRotatedGroupResult(Teleporter *teleporter, Thing thing, uint16 mapIndex) {
+int16 MovesensMan::getTeleporterRotatedGroupResult(byte *teleporter, Thing thing, uint16 mapIndex) {
 	DungeonMan &dungeon = *_vm->_dungeonMan;
-	Direction rotation = teleporter->getRotation();
+	Direction rotation = TELEPORTER_getRotation(teleporter);
 	byte *group = dungeon.getThingData(thing);
 	uint16 groupDirections = _vm->_groupMan->getGroupDirections(group, mapIndex);
 
-	bool absoluteRotation = teleporter->getAbsoluteRotation();
+	bool absoluteRotation = TELEPORTER_getAbsoluteRotation(teleporter);
 	uint16 updatedGroupDirections;
 	if (absoluteRotation)
 		updatedGroupDirections = rotation;
@@ -687,10 +687,10 @@ int16 MovesensMan::getTeleporterRotatedGroupResult(Teleporter *teleporter, Thing
 	return 1;
 }
 
-Thing MovesensMan::getTeleporterRotatedProjectileThing(Teleporter *teleporter, Thing projectileThing) {
+Thing MovesensMan::getTeleporterRotatedProjectileThing(byte *teleporter, Thing projectileThing) {
 	int16 updatedDirection = _moveResultDir;
-	int16 rotation = teleporter->getRotation();
-	if (teleporter->getAbsoluteRotation())
+	int16 rotation = TELEPORTER_getRotation(teleporter);
+	if (TELEPORTER_getAbsoluteRotation(teleporter))
 		updatedDirection = rotation;
 	else {
 		updatedDirection = _vm->normalizeModulo4(updatedDirection + rotation);
