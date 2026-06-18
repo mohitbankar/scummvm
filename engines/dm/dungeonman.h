@@ -356,17 +356,11 @@ public:
 #define TELEPORTER_getTargetMapX(address) (TELEPORTER_attributes(address) & 0x1F)
 #define TELEPORTER_getTargetMapIndex(address) (TELEPORTER_destMapIndex(address) >> 8)
 
-class TextString {
-	Thing _nextThing;
-	uint16 _textDataRef;
-public:
-	explicit TextString(uint16 *rawDat) : _nextThing(rawDat[0]), _textDataRef(rawDat[1]) {}
-
-	Thing getNextThing() { return _nextThing; }
-	uint16 getWordOffset() { return _textDataRef >> 3; }
-	bool isVisible() { return _textDataRef & 1; }
-	void setVisible(bool visible) { _textDataRef = (_textDataRef & ~1) | (visible ? 1 : 0); }
-}; // @ TEXTSTRING
+// @ TEXTSTRING
+#define TEXTSTRING_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define TEXTSTRING_wordOffset(address) (READ_LE_UINT16((address) + 2) >> 3)
+#define TEXTSTRING_isVisible(address) (READ_LE_UINT16((address) + 2) & 1)
+#define TEXTSTRING_setVisible(address, visible) WRITE_LE_UINT16((address) + 2, (READ_LE_UINT16((address) + 2) & ~1) | ((visible) ? 1 : 0))
 
 // @ SENSOR
 #define SENSOR_nextThing(address) (Thing(READ_LE_UINT16(address)))

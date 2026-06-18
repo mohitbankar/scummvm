@@ -593,11 +593,11 @@ void Timeline::processEventSquareWall(TimelineEvent *event) {
 	while (curThing != _vm->_thingEndOfList) {
 		int16 curThingType = curThing.getType();
 		if ((curThingType == kDMstringTypeText) && (curThing.getCell() == event->_Cu.A._cell)) {
-			TextString *textString = (TextString *)_vm->_dungeonMan->getThingData(curThing);
+			byte *textString = _vm->_dungeonMan->getThingData(curThing);
 			if (event->_Cu.A._effect == kDMSensorEffectToggle)
-				textString->setVisible(!textString->isVisible());
+				TEXTSTRING_setVisible(textString, !TEXTSTRING_isVisible(textString));
 			else
-				textString->setVisible(event->_Cu.A._effect == kDMSensorEffectSet);
+				TEXTSTRING_setVisible(textString, event->_Cu.A._effect == kDMSensorEffectSet);
 		} else if (curThingType == kDMThingTypeSensor) {
 			byte *curThingSensor = _vm->_dungeonMan->getThingData(curThing);
 			uint16 curSensorType = SENSOR_type(curThingSensor);
@@ -723,14 +723,14 @@ void Timeline::processEventSquareCorridor(TimelineEvent *event) {
 	while (curThing != _vm->_thingEndOfList) {
 		int16 curThingType = curThing.getType();
 		if (curThingType == kDMstringTypeText) {
-			TextString *textString = (TextString *)_vm->_dungeonMan->getThingData(curThing);
-			bool textCurrentlyVisible = textString->isVisible();
+			byte *textString = _vm->_dungeonMan->getThingData(curThing);
+			bool textCurrentlyVisible = TEXTSTRING_isVisible(textString);
 			if (event->_Cu.A._effect == kDMSensorEffectToggle)
-				textString->setVisible(!textCurrentlyVisible);
+				TEXTSTRING_setVisible(textString, !textCurrentlyVisible);
 			else
-				textString->setVisible((event->_Cu.A._effect == kDMSensorEffectSet));
+				TEXTSTRING_setVisible(textString, (event->_Cu.A._effect == kDMSensorEffectSet));
 
-			if (!textCurrentlyVisible && textString->isVisible() && (_vm->_dungeonMan->_currMapIndex == _vm->_dungeonMan->_partyMapIndex) && (mapX == _vm->_dungeonMan->_partyMapX) && (mapY == _vm->_dungeonMan->_partyMapY)) {
+			if (!textCurrentlyVisible && TEXTSTRING_isVisible(textString) && (_vm->_dungeonMan->_currMapIndex == _vm->_dungeonMan->_partyMapIndex) && (mapX == _vm->_dungeonMan->_partyMapX) && (mapY == _vm->_dungeonMan->_partyMapY)) {
 				_vm->_dungeonMan->decodeText(_vm->_stringBuildBuffer, sizeof(_vm->_stringBuildBuffer), curThing, kDMTextTypeMessage);
 				_vm->_textMan->printMessage(kDMColorWhite, _vm->_stringBuildBuffer);
 			}

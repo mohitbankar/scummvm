@@ -909,7 +909,7 @@ T0172010_ClosedFakeWall:
 			if (AL0310_i_SideIndex) { /* Invisible on the back wall if 0 */
 				byte *curSensor = getThingData(curThing);
 				if (curThingType == kDMstringTypeText) {
-					if (((TextString *)curSensor)->isVisible()) {
+					if (TEXTSTRING_isVisible(curSensor)) {
 						aspectArray[AL0310_i_SideIndex + 1] = _currMapInscriptionWallOrnIndex + 1;
 						displMan._inscriptionThing = curThing; /* BUG0_76 The same text is drawn on multiple sides of a wall square. The engine stores only a single text to draw on a wall in a global variable. Even if different texts are placed on different sides of the wall, the same text is drawn on each affected side */
 					}
@@ -1128,8 +1128,8 @@ void DungeonMan::decodeText(char *destString, size_t maxSize, Thing thing, int16
 		{0,   0,  0,  0, 0, 0, 0, 0}
 	};
 
-	TextString textString(_thingData[kDMstringTypeText] + thing.getIndex() * _thingDataWordCount[kDMstringTypeText]);
-	if ((textString.isVisible()) || (type & kDMMaskDecodeEvenIfInvisible)) {
+	byte *textString = getThingData(thing);
+	if (TEXTSTRING_isVisible(textString) || (type & kDMMaskDecodeEvenIfInvisible)) {
 		type &= ~kDMMaskDecodeEvenIfInvisible;
 		char sepChar;
 		if (type == kDMTextTypeMessage) {
@@ -1142,7 +1142,7 @@ void DungeonMan::decodeText(char *destString, size_t maxSize, Thing thing, int16
 		}
 		uint16 codeCounter = 0;
 		int16 escChar = 0;
-		uint16 *codeWord = _dungeonTextData + textString.getWordOffset();
+		uint16 *codeWord = _dungeonTextData + TEXTSTRING_wordOffset(textString);
 		uint16 code = 0, codes = 0;
 		char *escReplString = nullptr;
 		char *endDestString = destString + maxSize;
