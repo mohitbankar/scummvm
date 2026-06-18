@@ -567,8 +567,7 @@ void InventoryMan::drawPanelObject(Thing thingToDraw, bool pressingEye) {
 		}
 		case kDMThingTypeArmour: {
 			potentialAttribMask = kDMDescriptionMaskCursed | kDMDescriptionMaskBroken;
-			Armour *armour = (Armour *)rawThingPtr;
-			actualAttribMask = (armour->getCursed() << 3) | (armour->getBroken() << 2);
+			actualAttribMask = (ARMOUR_cursed(rawThingPtr) << 3) | (ARMOUR_broken(rawThingPtr) << 2);
 			break;
 		}
 		case kDMThingTypePotion: {

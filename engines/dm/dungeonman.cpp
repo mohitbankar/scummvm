@@ -1261,19 +1261,19 @@ uint16 DungeonMan::getObjectWeight(Thing thing) {
 	// Initialization is not present in original
 	// Set to 0 by default as it's the default value used for _vm->_none
 	uint16 weight = 0;
-	Junk *junk = (Junk *)getThingData(thing);
+		byte *junk = getThingData(thing);
 
 	switch (thing.getType()) {
 	case kDMThingTypeWeapon:
 		weight = _weaponInfos[((Weapon *)junk)->getType()]._weight;
 		break;
 	case kDMThingTypeArmour:
-		weight = _armourInfos[((Armour *)junk)->getType()]._weight;
+		weight = _armourInfos[ARMOUR_type(junk)]._weight;
 		break;
 	case kDMThingTypeJunk:
-		weight = junkInfo[junk->getType()];
-		if (junk->getType() == kDMJunkTypeWaterskin)
-			weight += junk->getChargeCount() << 1;
+		weight = junkInfo[((Junk *)junk)->getType()];
+		if (((Junk *)junk)->getType() == kDMJunkTypeWaterskin)
+			weight += ((Junk *)junk)->getChargeCount() << 1;
 
 		break;
 	case kDMThingTypeContainer:
@@ -1312,7 +1312,7 @@ int16 DungeonMan::getObjectInfoIndex(Thing thing) {
 	case kDMThingTypeWeapon:
 		return kDMObjectInfoIndexFirstWeapon + Weapon(rawType).getType();
 	case kDMThingTypeArmour:
-		return kDMObjectInfoIndexFirstArmour + Armour(rawType).getType();
+		return kDMObjectInfoIndexFirstArmour + ARMOUR_type(rawType);
 	case kDMThingTypePotion:
 		return kDMObjectInfoIndexFirstPotion + Potion(rawType).getType();
 	default:
@@ -1468,7 +1468,7 @@ Thing DungeonMan::getDiscardThing(uint16 thingType) {
 							if (((Sensor *)squareThingData)->getType()) /* If sensor is not disabled */
 								break;
 						} else if (squareThingType == thingType) {
-							Thing *squareThingData = (Thing *)getThingData(squareThing);
+							byte *squareThingData = getThingData(squareThing);
 							switch (thingType) {
 							case kDMThingTypeGroup:
 								if (GROUP_getDoNotDiscard(squareThingData))
@@ -1486,7 +1486,7 @@ Thing DungeonMan::getDiscardThing(uint16 thingType) {
 								}
 								break;
 							case kDMThingTypeArmour:
-								if (((Armour *)squareThingData)->getDoNotDiscard())
+								if (ARMOUR_doNotDiscard(squareThingData))
 									continue;
 
 								setCurrentMap(mapIndex);

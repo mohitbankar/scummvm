@@ -309,8 +309,8 @@ void ChampionMan::applyModifiersToStatistics(Champion *champ, int16 slotIndex, i
 			cursed = weapon->getCursed();
 		} else {
 			// k6_ArmourThingType
-			Armour *armour = (Armour *)_vm->_dungeonMan->getThingData(thing);
-			cursed = armour->getCursed();
+			byte *armour = _vm->_dungeonMan->getThingData(thing);
+			cursed = ARMOUR_cursed(armour);
 		}
 
 		if (cursed) {
@@ -857,8 +857,8 @@ int16 ChampionMan::getWoundDefense(int16 champIndex, uint16 woundIndex) {
 	for (int16 slotIndex = kDMSlotReadyHand; slotIndex <= kDMSlotActionHand; slotIndex++) {
 		Thing curThing = curChampion->_slots[slotIndex];
 		if (curThing.getType() == kDMThingTypeArmour) {
-			ArmourInfo *armorInfo = (ArmourInfo *)dungeon.getThingData(curThing);
-			armorInfo = &dungeon._armourInfos[((Armour *)armorInfo)->getType()];
+			byte *armour = dungeon.getThingData(curThing);
+			ArmourInfo *armorInfo = &dungeon._armourInfos[ARMOUR_type(armour)];
 			if (getFlag(armorInfo->_attributes, kDMArmourAttributeShield))
 				armorShieldDefense += ((getStrength(champIndex, slotIndex) + dungeon.getArmourDefense(armorInfo, useSharpDefense)) * woundDefenseFactor[woundIndex]) >> ((slotIndex == woundIndex) ? 4 : 5);
 		}
@@ -872,8 +872,8 @@ int16 ChampionMan::getWoundDefense(int16 champIndex, uint16 woundIndex) {
 	if (woundIndex > kDMSlotActionHand) {
 		Thing curThing = curChampion->_slots[woundIndex];
 		if (curThing.getType() == kDMThingTypeArmour) {
-			ArmourInfo *armourInfo = (ArmourInfo *)dungeon.getThingData(curThing);
-			woundDefense += dungeon.getArmourDefense(&dungeon._armourInfos[((Armour *)armourInfo)->getType()], useSharpDefense);
+			byte *armour = dungeon.getThingData(curThing);
+			woundDefense += dungeon.getArmourDefense(&dungeon._armourInfos[ARMOUR_type(armour)], useSharpDefense);
 		}
 	}
 

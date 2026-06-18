@@ -1396,7 +1396,7 @@ void MenuMan::setChampionDirectionToPartyDirection(Champion *champ) {
 
 void MenuMan::decrementCharges(Champion *champ) {
 	Thing slotActionThing = champ->_slots[kDMSlotActionHand];
-	Junk *slotActionData = (Junk *)_vm->_dungeonMan->getThingData(slotActionThing);
+	byte *slotActionData = _vm->_dungeonMan->getThingData(slotActionThing);
 	switch (slotActionThing.getType()) {
 	case kDMThingTypeWeapon:
 		if (((Weapon *)slotActionData)->getChargeCount()) {
@@ -1404,13 +1404,13 @@ void MenuMan::decrementCharges(Champion *champ) {
 		}
 		break;
 	case kDMThingTypeArmour:
-		if (((Armour *)slotActionData)->getChargeCount()) {
-			((Armour *)slotActionData)->setChargeCount(((Armour *)slotActionData)->getChargeCount() - 1);
+		if (ARMOUR_chargeCount(slotActionData)) {
+			ARMOUR_setChargeCount(slotActionData, ARMOUR_chargeCount(slotActionData) - 1);
 		}
 		break;
 	case kDMThingTypeJunk:
-		if (slotActionData->getChargeCount()) {
-			slotActionData->setChargeCount(slotActionData->getChargeCount() - 1);
+		if (((Junk *)slotActionData)->getChargeCount()) {
+			((Junk *)slotActionData)->setChargeCount(((Junk *)slotActionData)->getChargeCount() - 1);
 		}
 		break;
 	default:
@@ -1752,14 +1752,14 @@ void MenuMan::setActionList(ActionSet *actionSet) {
 int16 MenuMan::getActionObjectChargeCount() {
 	ChampionMan &championMan = *_vm->_championMan;
 	Thing slotActionThing = championMan._champions[_vm->ordinalToIndex(championMan._actingChampionOrdinal)]._slots[kDMSlotActionHand];
-	Junk *junkData = (Junk *)_vm->_dungeonMan->getThingData(slotActionThing);
+	byte *junkData = _vm->_dungeonMan->getThingData(slotActionThing);
 	switch (slotActionThing.getType()) {
 	case kDMThingTypeWeapon:
 		return ((Weapon *)junkData)->getChargeCount();
 	case kDMThingTypeArmour:
-		return ((Armour *)junkData)->getChargeCount();
+		return ARMOUR_chargeCount(junkData);
 	case kDMThingTypeJunk:
-		return junkData->getChargeCount();
+		return ((Junk *)junkData)->getChargeCount();
 	default:
 		return 1;
 	}

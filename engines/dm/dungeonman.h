@@ -439,20 +439,16 @@ public:
 	void setDoNotDiscard(uint16 val) { _desc = (_desc & ~(1 << 7)) | ((val & 1) << 7); }
 }; // @ WEAPON
 
-class Armour {
-	Thing _nextThing;
-	uint16 _attributes;
-public:
-	explicit Armour(uint16 *rawDat) : _nextThing(rawDat[0]), _attributes(rawDat[1]) {}
+// @ ARMOUR
+#define ARMOUR_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define ARMOUR_attributes(address) READ_LE_UINT16((address) + 2)
 
-	ArmourType getType() { return (ArmourType)(_attributes & 0x7F); }
-	Thing getNextThing() { return _nextThing; }
-	uint16 getCursed() { return (_attributes >> 8) & 1; }
-	uint16 getBroken() { return (_attributes >> 13) & 1; }
-	uint16 getDoNotDiscard() { return (_attributes >> 7) & 1; }
-	uint16 getChargeCount() { return (_attributes >> 9) & 0xF; }
-	void setChargeCount(uint16 val) { _attributes = (_attributes & ~(0xF << 9)) | ((val & 0xF) << 9); }
-}; // @ ARMOUR
+#define ARMOUR_type(address) ((ArmourType)(ARMOUR_attributes(address) & 0x7F))
+#define ARMOUR_cursed(address) ((ARMOUR_attributes(address) >> 8) & 1)
+#define ARMOUR_broken(address) ((ARMOUR_attributes(address) >> 13) & 1)
+#define ARMOUR_doNotDiscard(address) ((ARMOUR_attributes(address) >> 7) & 1)
+#define ARMOUR_chargeCount(address) ((ARMOUR_attributes(address) >> 9) & 0xF)
+#define ARMOUR_setChargeCount(address, val) WRITE_LE_UINT16((address) + 2, (ARMOUR_attributes(address) & ~(0xF << 9)) | (((val) & 0xF) << 9))
 
 class Scroll {
 	Thing _nextThing;
