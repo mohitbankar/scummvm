@@ -279,7 +279,7 @@ void ProjExpl::createExplosion(Thing explThing, uint16 attack, uint16 mapXCombo,
 	if (unusedThing == _vm->_thingNone)
 		return;
 
-	Explosion *explosion = &((Explosion *)_vm->_dungeonMan->_thingData[kDMThingTypeExplosion])[(unusedThing).getIndex()];
+	byte *explosion = _vm->_dungeonMan->getThingData(unusedThing);
 	int16 projectileTargetMapX;
 	int16 projectileTargetMapY;
 	uint16 projectileMapX = mapXCombo;
@@ -297,14 +297,14 @@ void ProjExpl::createExplosion(Thing explThing, uint16 attack, uint16 mapXCombo,
 	}
 
 	if (cell == kDMCreatureTypeSingleCenteredCreature)
-		explosion->setCentered(true);
+		EXPL_setCentered(explosion, true);
 	else {
-		explosion->setCentered(false);
+		EXPL_setCentered(explosion, false);
 		unusedThing = _vm->thingWithNewCell(unusedThing, cell);
 	}
 
-	explosion->setType(explThing.toUint16() - _vm->_thingFirstExplosion.toUint16());
-	explosion->setAttack(attack);
+	EXPL_setType(explosion, explThing.toUint16() - _vm->_thingFirstExplosion.toUint16());
+	EXPL_setAttack(explosion, attack);
 	if (explThing.toUint16() < _vm->_thingExplHarmNonMaterial.toUint16()) {
 		uint16 soundIndex = (attack > 80) ? kDMSoundIndexStrongExplosion : kDMSoundIndexWeakExplosion;
 		_vm->_sound->requestPlay(soundIndex, projectileMapX, projectileMapY, kDMSoundModePlayIfPrioritized);
@@ -475,7 +475,7 @@ void ProjExpl::processEvents48To49(TimelineEvent *event) {
 void ProjExpl::processEvent25(TimelineEvent *event) {
 	uint16 mapX = event->_Bu._location._mapX;
 	uint16 mapY = event->_Bu._location._mapY;
-	Explosion *explosion = &((Explosion *)_vm->_dungeonMan->_thingData[kDMThingTypeExplosion])[Thing((event->_Cu._slot)).getIndex()];
+	byte *explosion = _vm->_dungeonMan->getThingData(Thing(event->_Cu._slot));
 	int16 curSquareType = Square(_vm->_dungeonMan->_currMapData[mapX][mapY]).getType();
 	bool explosionOnPartySquare = (_vm->_dungeonMan->_currMapIndex == _vm->_dungeonMan->_partyMapIndex) && (mapX == _vm->_dungeonMan->_partyMapX) && (mapY == _vm->_dungeonMan->_partyMapY);
 	Thing groupThing = _vm->_groupMan->groupGetThing(mapX, mapY);
@@ -491,12 +491,12 @@ void ProjExpl::processEvent25(TimelineEvent *event) {
 		creatureInfo = &_vm->_dungeonMan->_creatureInfos[creatureType];
 	}
 
-	Thing explosionThing = Thing(_vm->_thingFirstExplosion.toUint16() + explosion->getType());
+	Thing explosionThing = Thing(_vm->_thingFirstExplosion.toUint16() + EXPL_type(explosion));
 	int16 attack;
 	if (explosionThing == _vm->_thingExplPoisonCloud)
-		attack = MAX(1, MIN(explosion->getAttack() >> 5, 4) + _vm->getRandomNumber(2)); /* Value between 1 and 5 */
+		attack = MAX(1, MIN(EXPL_attack(explosion) >> 5, 4) + _vm->getRandomNumber(2)); /* Value between 1 and 5 */
 	else {
-		attack = (explosion->getAttack() >> 1) + 1;
+		attack = (EXPL_attack(explosion) >> 1) + 1;
 		attack += _vm->getRandomNumber(attack) + 1;
 	}
 
@@ -528,13 +528,13 @@ void ProjExpl::processEvent25(TimelineEvent *event) {
 		}
 		break;
 	case 0xFFE4:
-		explosion->setType(explosion->getType() + 1);
+		EXPL_setType(explosion, (uint16)EXPL_type(explosion) + 1);
 		_vm->_sound->requestPlay(kDMSoundIndexStrongExplosion, mapX, mapY, kDMSoundModePlayIfPrioritized);
 		AddEventFl = true;
 		break;
 	case 0xFFA8:
-		if (explosion->getAttack() > 55) {
-			explosion->setAttack(explosion->getAttack() - 40);
+		if (EXPL_attack(explosion) > 55) {
+			EXPL_setAttack(explosion, EXPL_attack(explosion) - 40);
 			AddEventFl = true;
 		}
 		break;
@@ -547,8 +547,8 @@ void ProjExpl::processEvent25(TimelineEvent *event) {
 			&& (attack > 2)) {
 			_vm->_groupMan->processEvents29to41(mapX, mapY, kDMEventTypeCreateReactionDangerOnSquare, 0);
 		}
-		if (explosion->getAttack() >= 6) {
-			explosion->setAttack(explosion->getAttack() - 3);
+		if (EXPL_attack(explosion) >= 6) {
+			EXPL_setAttack(explosion, EXPL_attack(explosion) - 3);
 			AddEventFl = true;
 		}
 		break;
@@ -562,7 +562,7 @@ void ProjExpl::processEvent25(TimelineEvent *event) {
 		_vm->_timeline->addEventGetEventIndex(&newEvent);
 	} else {
 		_vm->_dungeonMan->unlinkThingFromList(Thing(event->_Cu._slot), Thing(0), mapX, mapY);
-		explosion->setNextThing(_vm->_thingNone);
+		EXPL_setNextThing(explosion, _vm->_thingNone);
 	}
 }
 }

@@ -934,10 +934,10 @@ void DMEngine::fuseSequence() {
 		Thing curThing = _dungeonMan->getSquareFirstObject(fluxCageMapX, fluxcageMapY);
 		while (curThing != _thingEndOfList) {
 			if (curThing.getType() == kDMThingTypeExplosion) {
-				Explosion *curExplosion = (Explosion*)_dungeonMan->getThingData(curThing);
-				if (curExplosion->getType() == kDMExplosionTypeFluxcage) {
+				byte *curExplosion = _dungeonMan->getThingData(curThing);
+				if (EXPL_type(curExplosion) == kDMExplosionTypeFluxcage) {
 					_dungeonMan->unlinkThingFromList(curThing, Thing(0), fluxCageMapX, fluxcageMapY);
-					curExplosion->setNextThing(_thingNone);
+					EXPL_setNextThing(curExplosion, _thingNone);
 					continue;
 				}
 			}

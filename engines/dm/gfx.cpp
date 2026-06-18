@@ -3742,7 +3742,7 @@ T0115171_BackFromT0115015_DrawProjectileAsObject:;
 	if (!squareHasExplosion)
 		return;
 
-	Explosion *fluxcageExplosion = nullptr;
+	byte *fluxcageExplosion = nullptr;
 	int16 *explosionCoordinates;
 
 	AL_1_viewSquareExplosionIndex = AL_10_viewSquareIndexBackup + 3; /* Convert square index to square index for explosions */
@@ -3751,8 +3751,8 @@ T0115171_BackFromT0115015_DrawProjectileAsObject:;
 	do {
 		if (thingParam.getType() == kDMThingTypeExplosion) {
 			AL_2_cellPurpleMan = thingParam.getCell();
-			Explosion *explosion = (Explosion *)dungeon.getThingData(thingParam);
-			AL_4_explosionType = explosion->getType();
+			byte *explosion = dungeon.getThingData(thingParam);
+			AL_4_explosionType = EXPL_type(explosion);
 			bool rebirthExplosion = ((uint16)AL_4_explosionType >= kDMExplosionTypeRebirthStep1);
 			if (rebirthExplosion && ((AL_1_viewSquareExplosionIndex < kDMViewSquareD3CExplosion) || (AL_1_viewSquareExplosionIndex > kDMViewSquareD1CExplosion) || (AL_2_cellPurpleMan != cellYellowBear))) /* If explosion is rebirth and is not visible */
 				continue;
@@ -3791,7 +3791,7 @@ T0115171_BackFromT0115015_DrawProjectileAsObject:;
 					AL_4_explosionAspectIndex--; /* Smoke uses the same graphics as Poison Cloud, but with palette changes */
 
 				AL_4_explosionAspectIndex = AL_4_explosionAspectIndex * 3; /* 3 graphics per explosion pattern */
-				AL_2_explosionSize = (explosion->getAttack() >> 5);
+				AL_2_explosionSize = (EXPL_attack(explosion) >> 5);
 				if (AL_2_explosionSize) {
 					AL_4_explosionAspectIndex++; /* Use second graphic in the pattern for medium explosion attack */
 					if (AL_2_explosionSize > 3)
@@ -3813,7 +3813,7 @@ T0115171_BackFromT0115015_DrawProjectileAsObject:;
 					explosionCoordinates = rebirthStep2ExplosionCoordinates[AL_1_viewSquareExplosionIndex - 3];
 					explosionScale = explosionCoordinates[2];
 				} else {
-					if (explosion->getCentered()) {
+					if (EXPL_centered(explosion)) {
 						explosionCoordinates = centeredExplosionCoordinates[AL_1_viewSquareExplosionIndex];
 					} else {
 						if ((AL_2_cellPurpleMan == directionParam) || (AL_2_cellPurpleMan == _vm->turnDirLeft(directionParam)))
@@ -3823,7 +3823,7 @@ T0115171_BackFromT0115015_DrawProjectileAsObject:;
 
 						explosionCoordinates = explosionCoordinatesArray[AL_1_viewSquareExplosionIndex][AL_2_viewCell];
 					}
-					explosionScale = MAX(4, (MAX(48, explosion->getAttack() + 1) * explosionBaseScales[AL_10_explosionScaleIndex]) >> 8) & (int)0xFFFE;
+					explosionScale = MAX(4, (MAX(48, EXPL_attack(explosion) + 1) * explosionBaseScales[AL_10_explosionScaleIndex]) >> 8) & (int)0xFFFE;
 				}
 				bitmapRedBanana = getExplosionBitmap(AL_4_explosionAspectIndex, explosionScale, byteWidth, heightRedEagle);
 T0115200_DrawExplosion:

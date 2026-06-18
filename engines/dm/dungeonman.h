@@ -495,21 +495,18 @@ public:
 #define PROJ_eventIndex(address) READ_LE_UINT16((address) + 8)
 #define PROJ_setEventIndex(address, val) WRITE_LE_UINT16((address) + 8, (val))
 
-class Explosion {
-	Thing _nextThing;
-	uint16 _attributes;
-public:
-	explicit Explosion(uint16 *rawDat) : _nextThing(rawDat[0]), _attributes(rawDat[1]) {}
+// @ EXPLOSION
+#define EXPL_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define EXPL_setNextThing(address, val) WRITE_LE_UINT16(address, (val).toUint16())
+#define EXPL_attributes(address) READ_LE_UINT16((address) + 2)
+#define EXPL_setAttributes(address, val) WRITE_LE_UINT16((address) + 2, (val))
 
-	Thing getNextThing() { return _nextThing; }
-	Thing setNextThing(Thing val) { return _nextThing = val; }
-	uint16 getType() { return _attributes & 0x7F; }
-	uint16 setType(uint16 val) { _attributes = (_attributes & ~0x7F) | (val & 0x7F); return (val & 0x7F); }
-	uint16 getAttack() { return (_attributes >> 8) & 0xFF; }
-	void setAttack(uint16 val) { _attributes = (_attributes & ~(0xFF << 8)) | ((val & 0xFF) << 8); }
-	uint16 getCentered() { return (_attributes >> 7) & 0x1; }
-	void setCentered(uint16 val) { _attributes = (_attributes & ~(1 << 7)) | ((val & 1) << 7); }
-}; // @ EXPLOSION
+#define EXPL_type(address) (EXPL_attributes(address) & 0x7F)
+#define EXPL_setType(address, val) (EXPL_setAttributes(address, (EXPL_attributes(address) & ~0x7F) | ((val) & 0x7F)), ((val) & 0x7F))
+#define EXPL_attack(address) ((EXPL_attributes(address) >> 8) & 0xFF)
+#define EXPL_setAttack(address, val) EXPL_setAttributes(address, (EXPL_attributes(address) & ~(0xFF << 8)) | (((val) & 0xFF) << 8))
+#define EXPL_centered(address) ((EXPL_attributes(address) >> 7) & 0x1)
+#define EXPL_setCentered(address, val) EXPL_setAttributes(address, (EXPL_attributes(address) & ~(1 << 7)) | (((val) & 1) << 7))
 
 class Square {
 	byte _data;
