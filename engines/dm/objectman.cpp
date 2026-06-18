@@ -149,14 +149,14 @@ IconIndice ObjectMan::getIconIndex(Thing thing) {
 		if (((iconIndex < kDMIconIndiceWeaponDagger) && (iconIndex >= kDMIconIndiceJunkCompassNorth)) ||
 			((iconIndex >= kDMIconIndicePotionMaPotionMonPotion) && (iconIndex <= kDMIconIndicePotionWaterFlask)) ||
 			(iconIndex == kDMIconIndicePotionEmptyFlask)) {
-			Junk *junkThing = (Junk*)_vm->_dungeonMan->getThingData(thing);
+			byte *junkThing = _vm->_dungeonMan->getThingData(thing);
 			switch (iconIndex) {
 			case kDMIconIndiceJunkCompassNorth:
 				iconIndex += _vm->_dungeonMan->_partyDir;
 				break;
 			case kDMIconIndiceWeaponTorchUnlit:
-				if (((Weapon*)junkThing)->isLit())
-					iconIndex += chargeCountToTorchType[((Weapon*)junkThing)->getChargeCount()];
+				if (WEAPON_isLit(junkThing))
+					iconIndex += chargeCountToTorchType[WEAPON_chargeCount(junkThing)];
 				break;
 			case kDMIconIndiceScrollOpen:
 				if (((Scroll*)junkThing)->getClosed())
@@ -165,7 +165,7 @@ IconIndice ObjectMan::getIconIndex(Thing thing) {
 			case kDMIconIndiceJunkWater:
 			case kDMIconIndiceJunkIllumuletUnequipped:
 			case kDMIconIndiceJunkJewelSymalUnequipped:
-				if (junkThing->getChargeCount())
+				if (((Junk *)junkThing)->getChargeCount())
 					iconIndex++;
 				break;
 			case kDMIconIndiceWeaponBoltBladeStormEmpty:
@@ -174,7 +174,7 @@ IconIndice ObjectMan::getIconIndex(Thing thing) {
 			case kDMIconIndiceWeaponFuryRaBladeEmpty:
 			case kDMIconIndiceWeaponEyeOfTimeEmpty:
 			case kDMIconIndiceWeaponStaffOfClawsEmpty:
-				if (((Weapon*)junkThing)->getChargeCount())
+				if (WEAPON_chargeCount(junkThing))
 					iconIndex++;
 				break;
 			default:

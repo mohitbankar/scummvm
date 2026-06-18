@@ -1265,7 +1265,7 @@ uint16 DungeonMan::getObjectWeight(Thing thing) {
 
 	switch (thing.getType()) {
 	case kDMThingTypeWeapon:
-		weight = _weaponInfos[((Weapon *)junk)->getType()]._weight;
+		weight = _weaponInfos[WEAPON_type(junk)]._weight;
 		break;
 	case kDMThingTypeArmour:
 		weight = _armourInfos[ARMOUR_type(junk)]._weight;
@@ -1310,7 +1310,7 @@ int16 DungeonMan::getObjectInfoIndex(Thing thing) {
 	case kDMThingTypeJunk:
 		return kDMObjectInfoIndexFirstJunk + Junk(rawType).getType();
 	case kDMThingTypeWeapon:
-		return kDMObjectInfoIndexFirstWeapon + Weapon(rawType).getType();
+		return kDMObjectInfoIndexFirstWeapon + WEAPON_type(rawType);
 	case kDMThingTypeArmour:
 		return kDMObjectInfoIndexFirstArmour + ARMOUR_type(rawType);
 	case kDMThingTypePotion:
@@ -1363,8 +1363,8 @@ void DungeonMan::linkThingToList(Thing thingToLink, Thing thingInList, int16 map
 }
 
 WeaponInfo *DungeonMan::getWeaponInfo(Thing thing) {
-	Weapon *weapon = (Weapon *)getThingData(thing);
-	return &_weaponInfos[weapon->getType()];
+	byte *weapon = getThingData(thing);
+	return &_weaponInfos[WEAPON_type(weapon)];
 }
 
 int16 DungeonMan::getProjectileAspect(Thing thing) {
@@ -1493,7 +1493,7 @@ Thing DungeonMan::getDiscardThing(uint16 thingType) {
 								_vm->_moveSens->getMoveResult(squareThing, currMapX, currMapY, kDMMapXNotOnASquare, 0);
 								break;
 							case kDMThingTypeWeapon:
-								if (((Weapon *)squareThingData)->getDoNotDiscard())
+								if (WEAPON_doNotDiscard(squareThingData))
 									continue;
 
 								setCurrentMap(mapIndex);
@@ -1680,10 +1680,10 @@ Thing DungeonMan::getObjForProjectileLaucherOrObjGen(uint16 iconIndex) {
 	if (unusedThing == _vm->_thingNone)
 		return _vm->_thingNone;
 
-	Junk *junkPtr = (Junk *)getThingData(unusedThing);
-	junkPtr->setType(junkType); /* Also works for WEAPON in cases other than Boulder */
-	if ((iconIndex == kDMIconIndiceWeaponTorchUnlit) && ((Weapon *)junkPtr)->isLit()) /* BUG0_65 Torches created by object generator or projectile launcher sensors have no charges. Charges are only defined if the Torch is lit which is not possible at the time it is created */
-		((Weapon *)junkPtr)->setChargeCount(15);
+	byte *junkPtr = getThingData(unusedThing);
+	((Junk *)junkPtr)->setType(junkType); /* Also works for WEAPON in cases other than Boulder */
+	if ((iconIndex == kDMIconIndiceWeaponTorchUnlit) && WEAPON_isLit(junkPtr)) /* BUG0_65 Torches created by object generator or projectile launcher sensors have no charges. Charges are only defined if the Torch is lit which is not possible at the time it is created */
+		WEAPON_setChargeCount(junkPtr, 15);
 
 	return unusedThing;
 }

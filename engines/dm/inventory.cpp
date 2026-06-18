@@ -544,11 +544,10 @@ void InventoryMan::drawPanelObject(Thing thingToDraw, bool pressingEye) {
 		switch (thingType) {
 		case kDMThingTypeWeapon: {
 			potentialAttribMask = kDMDescriptionMaskCursed | kDMDescriptionMaskPoisoned | kDMDescriptionMaskBroken;
-			Weapon *weapon = (Weapon *)rawThingPtr;
-			actualAttribMask = (weapon->getCursed() << 3) | (weapon->getPoisoned() << 1) | (weapon->getBroken() << 2);
+			actualAttribMask = (WEAPON_cursed(rawThingPtr) << 3) | (WEAPON_poisoned(rawThingPtr) << 1) | (WEAPON_broken(rawThingPtr) << 2);
 			if ((iconIndex >= kDMIconIndiceWeaponTorchUnlit)
 				&& (iconIndex <= kDMIconIndiceWeaponTorchLit)
-				&& (weapon->getChargeCount() == 0)) {
+				&& (WEAPON_chargeCount(rawThingPtr) == 0)) {
 
 				switch (_vm->getGameLanguage()) { // localized
 				default:
@@ -704,8 +703,8 @@ void InventoryMan::setDungeonViewPalette() {
 				Thing slotThing = curChampion->_slots[slotIndex];
 				if ((_vm->_objectMan->getObjectType(slotThing) >= kDMIconIndiceWeaponTorchUnlit) &&
 					(_vm->_objectMan->getObjectType(slotThing) <= kDMIconIndiceWeaponTorchLit)) {
-					Weapon *curWeapon = (Weapon *)dungeon.getThingData(slotThing);
-					*curTorchLightPower = curWeapon->getChargeCount();
+					byte *curWeapon = dungeon.getThingData(slotThing);
+					*curTorchLightPower = WEAPON_chargeCount(curWeapon);
 				} else {
 					*curTorchLightPower = 0;
 				}
@@ -774,10 +773,10 @@ void InventoryMan::decreaseTorchesLightPower() {
 		while (slotIndex--) {
 			int16 iconIndex = _vm->_objectMan->getIconIndex(curChampion->_slots[slotIndex]);
 			if ((iconIndex >= kDMIconIndiceWeaponTorchUnlit) && (iconIndex <= kDMIconIndiceWeaponTorchLit)) {
-				Weapon *curWeapon = (Weapon *)dungeon.getThingData(curChampion->_slots[slotIndex]);
-				if (curWeapon->getChargeCount()) {
-					if (curWeapon->setChargeCount(curWeapon->getChargeCount() - 1) == 0) {
-						curWeapon->setDoNotDiscard(false);
+				byte *curWeaponData = dungeon.getThingData(curChampion->_slots[slotIndex]);
+				if (WEAPON_chargeCount(curWeaponData)) {
+					if (WEAPON_setChargeCount(curWeaponData, WEAPON_chargeCount(curWeaponData) - 1) == 0) {
+						WEAPON_setDoNotDiscard(curWeaponData, false);
 					}
 					torchChargeCountChanged = true;
 				}

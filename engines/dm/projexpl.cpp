@@ -183,8 +183,8 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 			if (!createExplosionOnImpact && (outcome == kDMKillOutcomeNoCreaturesInGroup)
 			&& (projectileAssociatedThingType == kDMThingTypeWeapon)
 			&& getFlag(curCreatureInfo->_attributes, kDMCreatureMaskKeepThrownSharpWeapon)) {
-				Weapon *weapon = (Weapon *)_vm->_dungeonMan->getThingData(projectileAssociatedThing);
-				WeaponType weaponType = weapon->getType();
+				byte *weaponData = _vm->_dungeonMan->getThingData(projectileAssociatedThing);
+				WeaponType weaponType = WEAPON_type(weaponData);
 				if ((weaponType == kDMWeaponDagger) || (weaponType == kDMWeaponArrow)
 				|| (weaponType == kDMWeaponSlayer) || (weaponType == kDMWeaponPoisonDart)
 				|| (weaponType == kDMWeaponThrowingStar))

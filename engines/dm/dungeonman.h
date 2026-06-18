@@ -412,32 +412,25 @@ public:
 
 }; // @ SENSOR
 
-class Weapon {
-	Thing _nextThing;
-	uint16 _desc;
-public:
-	explicit Weapon(uint16 *rawDat) : _nextThing(rawDat[0]), _desc(rawDat[1]) {}
+// @ WEAPON
+#define WEAPON_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define WEAPON_setNextThing(address, val) WRITE_LE_UINT16(address, (val).toUint16())
+#define WEAPON_desc(address) READ_LE_UINT16((address) + 2)
+#define WEAPON_setDesc(address, val) WRITE_LE_UINT16((address) + 2, val)
 
-	WeaponType getType() { return (WeaponType)(_desc & 0x7F); }
-	void setType(uint16 val) { _desc = (_desc & ~0x7F) | (val & 0x7F); }
-	bool isLit() { return (_desc >> 15) & 1; }
-	void setLit(bool val) {
-		if (val)
-			_desc |= (1 << 15);
-		else
-			_desc &= (~(1 << 15));
-	}
-	uint16 getChargeCount() { return (_desc >> 10) & 0xF; }
-	uint16 setChargeCount(uint16 val) { _desc = (_desc & ~(0xF << 10)) | ((val & 0xF) << 10); return (val & 0xF); }
-	Thing getNextThing() { return _nextThing; }
-	void setNextThing(Thing val) { _nextThing = val;  }
-	uint16 getCursed() { return (_desc >> 8) & 1; }
-	void setCursed(uint16 val) { _desc = (_desc & ~(1 << 8)) | ((val & 1) << 8); }
-	uint16 getPoisoned() { return (_desc >> 9) & 1; }
-	uint16 getBroken() { return (_desc >> 14) & 1; }
-	uint16 getDoNotDiscard() { return (_desc >> 7) & 1; }
-	void setDoNotDiscard(uint16 val) { _desc = (_desc & ~(1 << 7)) | ((val & 1) << 7); }
-}; // @ WEAPON
+#define WEAPON_type(address) ((WeaponType)(WEAPON_desc(address) & 0x7F))
+#define WEAPON_setType(address, val) WEAPON_setDesc(address, (WEAPON_desc(address) & ~0x7F) | ((val) & 0x7F))
+#define WEAPON_isLit(address) ((WEAPON_desc(address) >> 15) & 1)
+#define WEAPON_setLit(address, val) WEAPON_setDesc(address, (val) ? (WEAPON_desc(address) | (1 << 15)) : (WEAPON_desc(address) & ~(1 << 15)))
+#define WEAPON_chargeCount(address) ((WEAPON_desc(address) >> 10) & 0xF)
+#define WEAPON_setChargeCount(address, val) (WEAPON_setDesc(address, (WEAPON_desc(address) & ~(0xF << 10)) | (((val) & 0xF) << 10)), (uint16)((val) & 0xF))
+#define WEAPON_cursed(address) ((WEAPON_desc(address) >> 8) & 1)
+#define WEAPON_setCursed(address, val) WEAPON_setDesc(address, (WEAPON_desc(address) & ~(1 << 8)) | (((val) & 1) << 8))
+#define WEAPON_poisoned(address) ((WEAPON_desc(address) >> 9) & 1)
+#define WEAPON_broken(address) ((WEAPON_desc(address) >> 14) & 1)
+#define WEAPON_doNotDiscard(address) ((WEAPON_desc(address) >> 7) & 1)
+#define WEAPON_setDoNotDiscard(address, val) WEAPON_setDesc(address, (WEAPON_desc(address) & ~(1 << 7)) | (((val) & 1) << 7))
+
 
 // @ ARMOUR
 #define ARMOUR_nextThing(address) (Thing(READ_LE_UINT16(address)))

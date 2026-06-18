@@ -295,10 +295,10 @@ void GroupMan::dropCreatureFixedPossessions(CreatureType creatureType, int16 map
 			continue;
 		}
 
-		Weapon *currWeapon = (Weapon *)dungeon.getThingData(nextUnusedThing);
-		/* The same pointer type is used no matter the actual type k5_WeaponThingType, k6_ArmourThingType or k10_JunkThingType */
-		currWeapon->setType(currFixedPossession);
-		currWeapon->setCursed(cursedPossessions);
+		byte *currWeapon = dungeon.getThingData(nextUnusedThing);
+		/* The same pointer type was used in original no matter the actual type k5_WeaponThingType, k6_ArmourThingType or k10_JunkThingType */
+		WEAPON_setType(currWeapon, currFixedPossession);
+		WEAPON_setCursed(currWeapon, cursedPossessions);
 		nextUnusedThing = _vm->thingWithNewCell(nextUnusedThing, ((cell == kDMCreatureTypeSingleCenteredCreature) || !_vm->getRandomNumber(4)) ? _vm->getRandomNumber(4) : cell);
 		_vm->_moveSens->getMoveResult(nextUnusedThing, kDMMapXNotOnASquare, 0, mapX, mapY);
 		currFixedPossession = *fixedPossessions++;

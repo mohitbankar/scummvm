@@ -1083,7 +1083,7 @@ bool MenuMan::isActionPerformed(uint16 champIndex, int16 actionIndex) {
 
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
-	Weapon *weaponInHand = (Weapon *)dungeon.getThingData(curChampion->_slots[kDMSlotActionHand]);
+	byte *weaponInHand = dungeon.getThingData(curChampion->_slots[kDMSlotActionHand]);
 
 	int16 nextMapX = dungeon._partyMapX;
 	int16 nextMapY = dungeon._partyMapY;
@@ -1177,7 +1177,7 @@ bool MenuMan::isActionPerformed(uint16 champIndex, int16 actionIndex) {
 			break;
 		}
 
-		WeaponInfo *weaponInfoActionHand = &dungeon._weaponInfos[weaponInHand->getType()];
+		WeaponInfo *weaponInfoActionHand = &dungeon._weaponInfos[WEAPON_type(weaponInHand)];
 		WeaponInfo *weaponInfoReadyHand = dungeon.getWeaponInfo(curChampion->_slots[kDMSlotReadyHand]);
 		int16 actionHandWeaponClass = weaponInfoActionHand->_class;
 		int16 readyHandWeaponClass = weaponInfoReadyHand->_class;
@@ -1327,14 +1327,14 @@ bool MenuMan::isActionPerformed(uint16 champIndex, int16 actionIndex) {
 		break;
 	case kDMActionFreezeLife: {
 		int16 freezeTicks;
-		if (weaponInHand->getType() == (int)kDMJunkTypeMagicalBoxBlue) {
+		if (WEAPON_type(weaponInHand) == (int)kDMJunkTypeMagicalBoxBlue) {
 			freezeTicks = 30;
 			championMan.getObjectRemovedFromSlot(champIndex, kDMSlotActionHand);
-			weaponInHand->setNextThing(_vm->_thingNone);
-		} else if (weaponInHand->getType() == (int)kDMJunkTypeMagicalBoxGreen) {
+			WEAPON_setNextThing(weaponInHand, _vm->_thingNone);
+		} else if (WEAPON_type(weaponInHand) == (int)kDMJunkTypeMagicalBoxGreen) {
 			freezeTicks = 125;
 			championMan.getObjectRemovedFromSlot(champIndex, kDMSlotActionHand);
-			weaponInHand->setNextThing(_vm->_thingNone);
+			WEAPON_setNextThing(weaponInHand, _vm->_thingNone);
 		} else {
 			freezeTicks = 70;
 			decrementCharges(curChampion);
@@ -1399,8 +1399,8 @@ void MenuMan::decrementCharges(Champion *champ) {
 	byte *slotActionData = _vm->_dungeonMan->getThingData(slotActionThing);
 	switch (slotActionThing.getType()) {
 	case kDMThingTypeWeapon:
-		if (((Weapon *)slotActionData)->getChargeCount()) {
-			((Weapon *)slotActionData)->setChargeCount(((Weapon *)slotActionData)->getChargeCount() - 1);
+		if (WEAPON_chargeCount(slotActionData)) {
+			WEAPON_setChargeCount(slotActionData, WEAPON_chargeCount(slotActionData) - 1);
 		}
 		break;
 	case kDMThingTypeArmour:
@@ -1755,7 +1755,7 @@ int16 MenuMan::getActionObjectChargeCount() {
 	byte *junkData = _vm->_dungeonMan->getThingData(slotActionThing);
 	switch (slotActionThing.getType()) {
 	case kDMThingTypeWeapon:
-		return ((Weapon *)junkData)->getChargeCount();
+		return WEAPON_chargeCount(junkData);
 	case kDMThingTypeArmour:
 		return ARMOUR_chargeCount(junkData);
 	case kDMThingTypeJunk:

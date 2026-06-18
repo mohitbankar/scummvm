@@ -305,8 +305,8 @@ void ChampionMan::applyModifiersToStatistics(Champion *champ, int16 slotIndex, i
 	if (((thingType == kDMThingTypeWeapon) || (thingType == kDMThingTypeArmour))
 		&& (slotIndex >= kDMSlotReadyHand) && (slotIndex <= kDMSlotQuiverLine1_1)) {
 		if (thingType == kDMThingTypeWeapon) {
-			Weapon *weapon = (Weapon *)_vm->_dungeonMan->getThingData(thing);
-			cursed = weapon->getCursed();
+			byte *weapon = _vm->_dungeonMan->getThingData(thing);
+			cursed = WEAPON_cursed(weapon);
 		} else {
 			// k6_ArmourThingType
 			byte *armour = _vm->_dungeonMan->getThingData(thing);
@@ -560,7 +560,7 @@ void ChampionMan::addObjectInSlot(ChampionIndex champIndex, Thing thing, Champio
 		}
 
 		if (iconIndex == kDMIconIndiceWeaponTorchUnlit) {
-			((Weapon *)rawObjPtr)->setLit(true);
+			WEAPON_setLit(rawObjPtr, true);
 			invMan.setDungeonViewPalette();
 			drawChangedObjectIcons();
 		} else if (isInventoryChampion && (slotIndex == kDMSlotActionHand) &&
@@ -687,7 +687,7 @@ Thing ChampionMan::getObjectRemovedFromSlot(uint16 champIndex, uint16 slotIndex)
 	// Remove object modifiers
 	applyModifiersToStatistics(curChampion, slotIndex, curIconIndex, -1, curThing);
 
-	Weapon *curWeapon = (Weapon *)dungeon.getThingData(curThing);
+	byte *curWeapon = dungeon.getThingData(curThing);
 	if (slotIndex == kDMSlotNeck) {
 		if ((curIconIndex >= kDMIconIndiceJunkIllumuletUnequipped) && (curIconIndex <= kDMIconIndiceJunkIllumuletEquipped)) {
 			((Junk *)curWeapon)->setChargeCount(0);
@@ -715,7 +715,7 @@ Thing ChampionMan::getObjectRemovedFromSlot(uint16 champIndex, uint16 slotIndex)
 		}
 
 		if ((curIconIndex >= kDMIconIndiceWeaponTorchUnlit) && (curIconIndex <= kDMIconIndiceWeaponTorchLit)) {
-			curWeapon->setLit(false);
+			WEAPON_setLit(curWeapon, false);
 			inventory.setDungeonViewPalette();
 			drawChangedObjectIcons();
 		}
