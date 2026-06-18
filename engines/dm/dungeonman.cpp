@@ -1471,7 +1471,7 @@ Thing DungeonMan::getDiscardThing(uint16 thingType) {
 							Thing *squareThingData = (Thing *)getThingData(squareThing);
 							switch (thingType) {
 							case kDMThingTypeGroup:
-								if (((Group *)squareThingData)->getDoNotDiscard())
+								if (GROUP_getDoNotDiscard(squareThingData))
 									continue;
 								// fall through
 							case kDMThingTypeProjectile:
@@ -1540,26 +1540,26 @@ Thing DungeonMan::getDiscardThing(uint16 thingType) {
 }
 
 uint16 DungeonMan::getCreatureAttributes(Thing thing) {
-	Group *currGroup = (Group *)getThingData(thing);
-	return _creatureInfos[currGroup->_type]._attributes;
+	byte *currGroup = getThingData(thing);
+	return _creatureInfos[GROUP_type(currGroup)]._attributes;
 }
 
-void DungeonMan::setGroupCells(Group *group, uint16 cells, uint16 mapIndex) {
+void DungeonMan::setGroupCells(byte *group, uint16 cells, uint16 mapIndex) {
 	if (mapIndex == _partyMapIndex)
-		_vm->_groupMan->_activeGroups[group->getActiveGroupIndex()]._cells = cells;
+		_vm->_groupMan->_activeGroups[GROUP_cells(group)]._cells = cells;
 	else
-		group->_cells = cells;
+		GROUP_setCells(group, cells);
 }
 
-void DungeonMan::setGroupDirections(Group *group, int16 dir, uint16 mapIndex) {
+void DungeonMan::setGroupDirections(byte *group, int16 dir, uint16 mapIndex) {
 	if (mapIndex == _partyMapIndex)
-		_vm->_groupMan->_activeGroups[group->getActiveGroupIndex()]._directions = dir;
+		_vm->_groupMan->_activeGroups[GROUP_cells(group)]._directions = dir;
 	else
-		group->setDir(_vm->normalizeModulo4(dir));
+		GROUP_setDir(group, _vm->normalizeModulo4(dir));
 }
 
 bool DungeonMan::isCreatureAllowedOnMap(Thing thing, uint16 mapIndex) {
-	CreatureType creatureType = ((Group *)getThingData(thing))->_type;
+	CreatureType creatureType = GROUP_type(getThingData(thing));
 	Map *map = &_dungeonMaps[mapIndex];
 	byte *allowedCreatureType = _dungeonMapData[mapIndex][map->_width] + map->_height + 1;
 	for (int16 L0234_i_Counter = map->_creatureTypeCount; L0234_i_Counter > 0; L0234_i_Counter--) {

@@ -62,7 +62,7 @@ public:
 							  uint16 mapYCombo, uint16 cell); // @ F0213_EXPLOSION_Create
 	int16 projectileGetImpactCount(int16 impactType, int16 mapX, int16 mapY, int16 cell); // @ F0218_PROJECTILE_GetImpactCount
 	void projectileDeleteEvent(Thing thing); // @ F0214_PROJECTILE_DeleteEvent
-	void projectileDelete(Thing projectileThing, Thing *groupSlot, int16 mapX, int16 mapY); // @ F0215_PROJECTILE_Delete
+	void projectileDelete(Thing projectileThing, byte *group, int16 mapX, int16 mapY); // @ F0215_PROJECTILE_Delete
 	void processEvents48To49(TimelineEvent *event); // @ F0219_PROJECTILE_ProcessEvents48To49_Projectile
 	void processEvent25(TimelineEvent *event); // @ F0220_EXPLOSION_ProcessEvent25_Explosion
 };

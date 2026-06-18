@@ -86,23 +86,23 @@ void GroupMan::initActiveGroups() {
 		_activeGroups[i]._groupThingIndex = -1;
 }
 
-uint16 GroupMan::getGroupCells(Group *group, int16 mapIndex) {
-	byte cells = group->_cells;
+uint16 GroupMan::getGroupCells(byte *group, int16 mapIndex) {
+	byte cells = GROUP_cells(group);
 	if (mapIndex == _vm->_dungeonMan->_partyMapIndex)
 		cells = _activeGroups[cells]._cells;
 	return cells;
 }
 
-uint16 GroupMan::getGroupDirections(Group *group, int16 mapIndex) {
+uint16 GroupMan::getGroupDirections(byte *group, int16 mapIndex) {
 	static byte groupDirections[4] = {0x00, 0x55, 0xAA, 0xFF}; // @ G0258_auc_Graphic559_GroupDirections
 
 	if (mapIndex == _vm->_dungeonMan->_partyMapIndex)
-		return _activeGroups[group->getActiveGroupIndex()]._directions;
+		return _activeGroups[GROUP_cells(group)]._directions;
 
-	return groupDirections[group->getDir()];
+	return groupDirections[GROUP_getDir(group)];
 }
 
-int16 GroupMan::getCreatureOrdinalInCell(Group *group, uint16 cell) {
+int16 GroupMan::getCreatureOrdinalInCell(byte *group, uint16 cell) {
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
 	uint16 currMapIndex = dungeon._currMapIndex;
@@ -111,8 +111,8 @@ int16 GroupMan::getCreatureOrdinalInCell(Group *group, uint16 cell) {
 		return _vm->indexToOrdinal(0);
 
 	int retval = 0;
-	byte creatureIndex = group->getCount();
-	if (getFlag(dungeon._creatureInfos[group->_type]._attributes, kDMCreatureMaskSize) == kDMCreatureSizeHalf) {
+	byte creatureIndex = GROUP_getCount(group);
+	if (getFlag(dungeon._creatureInfos[GROUP_type(group)]._attributes, kDMCreatureMaskSize) == kDMCreatureSizeHalf) {
 		if ((getGroupDirections(group, currMapIndex) & 1) == (cell & 1))
 			cell = _vm->turnDirLeft(cell);
 
@@ -142,10 +142,10 @@ uint16 GroupMan::getCreatureValue(uint16 groupVal, uint16 creatureIndex) {
 void GroupMan::dropGroupPossessions(int16 mapX, int16 mapY, Thing groupThing, SoundMode soundMode) {
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
-	Group *group = (Group *)dungeon.getThingData(groupThing);
-	CreatureType creatureType = group->_type;
+	byte *group = dungeon.getThingData(groupThing);
+	CreatureType creatureType = GROUP_type(group);
 	if ((soundMode != kDMSoundModeDoNotPlaySound) && getFlag(dungeon._creatureInfos[creatureType]._attributes, kDMCreatureMaskDropFixedPoss)) {
-		int16 creatureIndex = group->getCount();
+		int16 creatureIndex = GROUP_getCount(group);
 		uint16 groupCells = getGroupCells(group, dungeon._currMapIndex);
 		do {
 			dropCreatureFixedPossessions(creatureType, mapX, mapY,
@@ -153,7 +153,7 @@ void GroupMan::dropGroupPossessions(int16 mapX, int16 mapY, Thing groupThing, So
 		} while (creatureIndex--);
 	}
 
-	Thing currentThing = group->_slot;
+	Thing currentThing = GROUP_slot(group);
 	if ((currentThing) != _vm->_thingEndOfList) {
 		bool weaponDropped = false;
 		Thing nextThing;
@@ -402,18 +402,18 @@ Thing GroupMan::groupGetThing(int16 mapX, int16 mapY) {
 	return curThing;
 }
 
-int16 GroupMan::groupGetDamageCreatureOutcome(Group *group, uint16 creatureIndex, int16 mapX, int16 mapY, int16 damage, bool notMoving) {
+int16 GroupMan::groupGetDamageCreatureOutcome(byte *group, uint16 creatureIndex, int16 mapX, int16 mapY, int16 damage, bool notMoving) {
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
-	CreatureType creatureType = group->_type;
+	CreatureType creatureType = GROUP_type(group);
 	CreatureInfo *creatureInfo = &dungeon._creatureInfos[creatureType];
 	if (getFlag(creatureInfo->_attributes, kDMCreatureMaskArchenemy)) /* Lord Chaos cannot be damaged */
 		return kDMKillOutcomeNoCreaturesInGroup;
 
-	if (group->_health[creatureIndex] <= damage) {
+	if (GROUP_health(group, creatureIndex) <= damage) {
 		uint16 groupCells = getGroupCells(group, dungeon._currMapIndex);
 		uint16 cell = (groupCells == kDMCreatureTypeSingleCenteredCreature) ? (uint16)kDMCreatureTypeSingleCenteredCreature : getCreatureValue(groupCells, creatureIndex);
-		uint16 creatureCount = group->getCount();
+		uint16 creatureCount = GROUP_getCount(group);
 		uint16 retVal;
 
 		if (!creatureCount) { /* If there is a single creature in the group */
@@ -433,9 +433,9 @@ int16 GroupMan::groupGetDamageCreatureOutcome(Group *group, uint16 creatureIndex
 			bool currentMapIsPartyMap = (dungeon._currMapIndex == dungeon._partyMapIndex);
 			ActiveGroup *activeGroup = nullptr;
 			if (currentMapIsPartyMap)
-				activeGroup = &_activeGroups[group->getActiveGroupIndex()];
+				activeGroup = &_activeGroups[GROUP_cells(group)];
 
-			if (group->getBehaviour() == kDMBehaviorAttack) {
+			if (GROUP_getBehaviour(group) == kDMBehaviorAttack) {
 				TimelineEvent *curEvent = _vm->_timeline->_events;
 				for (uint16 eventIndex = 0; eventIndex < _vm->_timeline->_eventMaxCount; eventIndex++) {
 					uint16 curEventType = curEvent->_type;
@@ -466,14 +466,14 @@ int16 GroupMan::groupGetDamageCreatureOutcome(Group *group, uint16 creatureIndex
 					fearResistance += creatureCount - 1;
 					if (fearResistance < _vm->getRandomNumber(16)) { /* Test if the death of a creature frightens the remaining creatures in the group */
 						activeGroup->_delayFleeingFromTarget = _vm->getRandomNumber(100 - (fearResistance << 2)) + 20;
-						group->setBehaviour(kDMBehaviorFlee);
+						GROUP_setBehaviour(group, kDMBehaviorFlee);
 					}
 				}
 			}
 			uint16 nextCreatureIndex = creatureIndex;
 			for (uint16 curCreatureIndex = creatureIndex; curCreatureIndex < creatureCount; curCreatureIndex++) {
 				nextCreatureIndex++;
-				group->_health[curCreatureIndex] = group->_health[nextCreatureIndex];
+				GROUP_setHealth(group, curCreatureIndex, GROUP_health(group, nextCreatureIndex));
 				groupDirections = getGroupValueUpdatedWithCreatureValue(groupDirections, curCreatureIndex, getCreatureValue(groupDirections, nextCreatureIndex));
 				groupCells = getGroupValueUpdatedWithCreatureValue(groupCells, curCreatureIndex, getCreatureValue(groupCells, nextCreatureIndex));
 				if (currentMapIsPartyMap)
@@ -482,7 +482,7 @@ int16 GroupMan::groupGetDamageCreatureOutcome(Group *group, uint16 creatureIndex
 			groupCells &= 0x003F;
 			dungeon.setGroupCells(group, groupCells, dungeon._currMapIndex);
 			dungeon.setGroupDirections(group, groupDirections, dungeon._currMapIndex);
-			group->setCount(group->getCount() - 1);
+			GROUP_setCount(group, GROUP_getCount(group) - 1);
 			retVal = kDMKillOutcomeSomeCreaturesInGroup;
 		}
 
@@ -500,7 +500,7 @@ int16 GroupMan::groupGetDamageCreatureOutcome(Group *group, uint16 creatureIndex
 	}
 
 	if (damage > 0)
-		group->_health[creatureIndex] -= damage;
+		GROUP_setHealth(group, creatureIndex, GROUP_health(group, creatureIndex) - damage);
 
 	return kDMKillOutcomeNoCreaturesInGroup;
 }
@@ -512,13 +512,13 @@ void GroupMan::groupDelete(int16 mapX, int16 mapY) {
 
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
-	Group *group = (Group *)dungeon.getThingData(groupThing);
+	byte *group = dungeon.getThingData(groupThing);
 	for (uint16 i = 0; i < 4; ++i)
-		group->_health[i] = 0;
+		GROUP_setHealth(group, i, 0);
 	_vm->_moveSens->getMoveResult(groupThing, mapX, mapY, kDMMapXNotOnASquare, 0);
-	group->_nextThing = _vm->_thingNone;
+	GROUP_setNextThing(group, _vm->_thingNone);
 	if (dungeon._currMapIndex == dungeon._partyMapIndex) {
-		_activeGroups[group->getActiveGroupIndex()]._groupThingIndex = -1;
+		_activeGroups[GROUP_cells(group)]._groupThingIndex = -1;
 		_currActiveGroupCount--;
 	}
 	groupDeleteEvents(mapX, mapY);
@@ -546,10 +546,10 @@ uint16 GroupMan::getGroupValueUpdatedWithCreatureValue(uint16 groupVal, uint16 c
 	return creatureVal | (groupVal & ~(3 << creatureIndex));
 }
 
-int16 GroupMan::getDamageAllCreaturesOutcome(Group *group, int16 mapX, int16 mapY, int16 attack, bool notMoving) {
+int16 GroupMan::getDamageAllCreaturesOutcome(byte *group, int16 mapX, int16 mapY, int16 attack, bool notMoving) {
 	_dropMovingCreatureFixedPossCellCount = 0;
 	if (attack > 0) {
-		int16 creatureIndex = group->getCount();
+		int16 creatureIndex = GROUP_getCount(group);
 		uint16 randomAttackSeed = (attack >> 3) + 1;
 		attack -= randomAttackSeed;
 		randomAttackSeed <<= 1;
@@ -619,8 +619,8 @@ void GroupMan::processEvents29to41(int16 eventMapX, int16 eventMapY, TimelineEve
 
 	ChampionMan &championMan = *_vm->_championMan;
 
-	Group *curGroup = (Group *)dungeon.getThingData(groupThing);
-	CreatureInfo creatureInfo = dungeon._creatureInfos[curGroup->_type];
+	byte *curGroup = dungeon.getThingData(groupThing);
+	CreatureInfo creatureInfo = dungeon._creatureInfos[GROUP_type(curGroup)];
 	/* Update the event */
 	TimelineEvent nextEvent;
 	nextEvent._mapTime = _vm->setMapAndTime(dungeon._currMapIndex, _vm->_gameTime);
@@ -656,7 +656,7 @@ T0209005_AddEventAndReturn:
 		_fluxCageCount = 0;
 		_fluxCages[0] = 0;
 	}
-	ActiveGroup *activeGroup = &_activeGroups[curGroup->getActiveGroupIndex()];
+	ActiveGroup *activeGroup = &_activeGroups[GROUP_cells(curGroup)];
 
 	// CHECKME: Terrible mix of types
 	int16 ticksSinceLastMove = (unsigned char)_vm->_gameTime - activeGroup->_lastMoveTime;
@@ -690,8 +690,8 @@ T0209005_AddEventAndReturn:
 		}
 		goto T0209005_AddEventAndReturn; /* BUG0_68 A group moves or acts with a wrong timing. Event is added but L0465_s_NextEvent.C.Ticks has not been initialized */
 	}
-	AL0447_i_Behavior = curGroup->getBehaviour();
-	uint16 creatureCount = curGroup->getCount();
+	AL0447_i_Behavior = GROUP_getBehaviour(curGroup);
+	uint16 creatureCount = GROUP_getCount(curGroup);
 	int16 creatureSize = getFlag(creatureInfo._attributes, kDMCreatureMaskSize);
 	AL0450_i_DistanceXToParty = ABS(eventMapX - dungeon._partyMapX);
 	AL0451_i_DistanceYToParty = ABS(eventMapY - dungeon._partyMapY);
@@ -784,7 +784,7 @@ T0209044_SetBehavior6_Attack:
 						}
 						activeGroup->_targetMapX = dungeon._partyMapX;
 						activeGroup->_targetMapY = dungeon._partyMapY;
-						curGroup->setBehaviour(kDMBehaviorAttack);
+						GROUP_setBehaviour(curGroup, kDMBehaviorAttack);
 						AL0446_i_Direction = _currGroupPrimaryDirToParty;
 						for (AL0447_i_CreatureIndex = creatureCount; AL0447_i_CreatureIndex >= 0; AL0447_i_CreatureIndex--) {
 							if ((getCreatureValue(activeGroup->_directions, AL0447_i_CreatureIndex) != AL0446_i_Direction) &&
@@ -805,7 +805,7 @@ T0209044_SetBehavior6_Attack:
 					}
 					if (AL0447_i_Behavior != kDMBehaviorUnknown2) { /* BUG0_00 Useless code. Behavior cannot be 2 because this value is never used */
 T0209054_SetBehavior7_Approach:
-						curGroup->setBehaviour(kDMBehaviorApproach);
+						GROUP_setBehaviour(curGroup, kDMBehaviorApproach);
 						activeGroup->_targetMapX = dungeon._partyMapX;
 						activeGroup->_targetMapY = dungeon._partyMapY;
 						nextEvent._mapTime += 1;
@@ -852,7 +852,7 @@ T0209061_MoveGroup:
 								}
 								if (_groupMovementBlockedByParty) {
 									if ((eventType != kDMEventTypeCreateReactionDangerOnSquare) &&
-										((curGroup->getBehaviour() != kDMBehaviorFlee) ||
+										((GROUP_getBehaviour(curGroup) != kDMBehaviorFlee) ||
 										 !getFirstPossibleMovementDirOrdinal(&creatureInfo, eventMapX, eventMapY, false) ||
 										 _vm->getRandomNumber(2)))
 										goto T0209044_SetBehavior6_Attack;
@@ -881,7 +881,7 @@ T0209073_SetDirectionGroup:
 							if (!newGroupDirectionFound)
 								return;
 							if (approachAfterReaction)
-								curGroup->setBehaviour(kDMBehaviorApproach);
+								GROUP_setBehaviour(curGroup, kDMBehaviorApproach);
 
 							stopAttacking(activeGroup, eventMapX, eventMapY);
 						}
@@ -905,7 +905,7 @@ T0209082_WalkTowardTarget:
 						/* If the creature reached its target but the party is not there anymore */
 						if ((eventMapX == AL0450_i_TargetMapX) && (eventMapY == AL0451_i_TargetMapY)) {
 							newGroupDirectionFound = false;
-							curGroup->setBehaviour(kDMBehaviorWander);
+							GROUP_setBehaviour(curGroup, kDMBehaviorWander);
 							goto T0209073_SetDirectionGroup;
 						}
 					}
@@ -952,7 +952,7 @@ T0209094_FleeFromTarget:
 							if (!(--(activeGroup->_delayFleeingFromTarget))) { /* If the creature is not afraid anymore then stop fleeing from target */
 T0209096_SetBehavior0_Wander:
 								newGroupDirectionFound = false;
-								curGroup->setBehaviour(kDMBehaviorWander);
+								GROUP_setBehaviour(curGroup, kDMBehaviorWander);
 								goto T0209073_SetDirectionGroup;
 							}
 							if (_vm->getRandomNumber(2)) {
@@ -1056,7 +1056,7 @@ T0209096_SetBehavior0_Wander:
 						nextAspectUpdateTime = getCreatureAspectUpdateTime(activeGroup, AL0447_i_CreatureIndex, isCreatureAttacking(curGroup, eventMapX, eventMapY, AL0447_i_CreatureIndex));
 						nextEvent._mapTime += (creatureInfo._animationTicks & 0xF) + _vm->getRandomNumber(2);
 					} else {
-						curGroup->setBehaviour(kDMBehaviorApproach);
+						GROUP_setBehaviour(curGroup, kDMBehaviorApproach);
 						if (creatureCount) {
 							stopAttacking(activeGroup, eventMapX, eventMapY);
 						}
@@ -1071,7 +1071,7 @@ T0209096_SetBehavior0_Wander:
 						nextEvent._mapTime += 2;
 						nextAspectUpdateTime = _vm->filterTime(nextEvent._mapTime);
 					} else { /* If the party is not visible, move to the target (last known party location) */
-						curGroup->setBehaviour(kDMBehaviorApproach);
+						GROUP_setBehaviour(curGroup, kDMBehaviorApproach);
 						if (creatureCount) {
 							stopAttacking(activeGroup, eventMapX, eventMapY);
 						}
@@ -1169,12 +1169,12 @@ int16 GroupMan::getDistanceBetweenSquares(int16 srcMapX, int16 srcMapY, int16 de
 	return ABS(srcMapX - destMapX) + ABS(srcMapY - destMapY);
 }
 
-int16 GroupMan::groupGetDistanceToVisibleParty(Group *group, int16 creatureIndex, int16 mapX, int16 mapY) {
+int16 GroupMan::groupGetDistanceToVisibleParty(byte *group, int16 creatureIndex, int16 mapX, int16 mapY) {
 	uint16 groupDirections;
 	ChampionMan &championMan = *_vm->_championMan;
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
-	CreatureInfo *groupCreatureInfo = &dungeon._creatureInfos[group->_type];
+	CreatureInfo *groupCreatureInfo = &dungeon._creatureInfos[GROUP_type(group)];
 	if (championMan._party._event71Count_Invisibility && !getFlag(groupCreatureInfo->_attributes, kDMCreatureMaskSeeInvisible))
 		return 0;
 
@@ -1186,10 +1186,10 @@ int16 GroupMan::groupGetDistanceToVisibleParty(Group *group, int16 creatureIndex
 		checkDirectionsCount = 1;
 		creatureViewDirections[0] = kDMDirNorth;
 	} else {
-		groupDirections = _activeGroups[group->getActiveGroupIndex()]._directions;
+		groupDirections = _activeGroups[GROUP_cells(group)]._directions;
 		if (creatureIndex < 0) { /* Negative index means test if each creature in the group can see the party in their respective direction */
 			checkDirectionsCount = 0;
-			for (creatureIndex = group->getCount(); creatureIndex >= 0; creatureIndex--) {
+			for (creatureIndex = GROUP_getCount(group); creatureIndex >= 0; creatureIndex--) {
 				int16 creatureDirection = _vm->normalizeModulo4(groupDirections >> (creatureIndex << 1));
 				int16 counter = checkDirectionsCount;
 				bool skipSet = false;
@@ -1299,12 +1299,12 @@ bool GroupMan::isViewPartyBlocked(uint16 mapX, uint16 mapY) {
 int32 GroupMan::getCreatureAspectUpdateTime(ActiveGroup *activeGroup, int16 creatureIndex, bool isAttacking) {
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
-	Group *group = &(((Group *)dungeon._thingData[kDMThingTypeGroup])[activeGroup->_groupThingIndex]);
-	CreatureType creatureType = group->_type;
+	byte *group = (byte *)(dungeon._thingData[kDMThingTypeGroup] + activeGroup->_groupThingIndex * dungeon._thingDataWordCount[kDMThingTypeGroup]);
+	CreatureType creatureType = GROUP_type(group);
 	uint16 creatureGraphicInfo = dungeon._creatureInfos[creatureType]._graphicInfo;
 	bool processGroup = (creatureIndex < 0);
 	if (processGroup) /* If the creature index is negative then all creatures in the group are processed */
-		creatureIndex = group->getCount();
+		creatureIndex = GROUP_getCount(group);
 
 	do {
 		uint16 aspect = activeGroup->_aspect[creatureIndex];
@@ -1363,7 +1363,7 @@ int32 GroupMan::getCreatureAspectUpdateTime(ActiveGroup *activeGroup, int16 crea
 		}
 		activeGroup->_aspect[creatureIndex] = aspect;
 	} while (processGroup && (creatureIndex--));
-	uint16 animationTicks = dungeon._creatureInfos[group->_type]._animationTicks;
+	uint16 animationTicks = dungeon._creatureInfos[GROUP_type(group)]._animationTicks;
 	return _vm->_gameTime + (isAttacking ? ((animationTicks >> 8) & 0xF) : ((animationTicks >> 4) & 0xF)) + _vm->getRandomNumber(2);
 }
 
@@ -1469,14 +1469,14 @@ bool GroupMan::isArchenemyDoubleMovementPossible(CreatureInfo *info, int16 mapX,
 	return isMovementPossible(info, mapX, mapY, dir, false);
 }
 
-bool GroupMan::isCreatureAttacking(Group *group, int16 mapX, int16 mapY, uint16 creatureIndex) {
+bool GroupMan::isCreatureAttacking(byte *group, int16 mapX, int16 mapY, uint16 creatureIndex) {
 	static const uint8 creatureAttackSounds[11] = { 3, 7, 14, 15, 19, 21, 29, 30, 31, 4, 16 }; /* Atari ST: { 3, 7, 14, 15, 19, 21, 4, 16 } */
 
 	ChampionMan &championMan = *_vm->_championMan;
 
 	_vm->_projexpl->_lastCreatureAttackTime = _vm->_gameTime;
-	ActiveGroup activeGroup = _activeGroups[group->getActiveGroupIndex()];
-	CreatureType creatureType = group->_type;
+	ActiveGroup activeGroup = _activeGroups[GROUP_cells(group)];
+	CreatureType creatureType = GROUP_type(group);
 	CreatureInfo *creatureInfo = &_vm->_dungeonMan->_creatureInfos[creatureType];
 	uint16 primaryDirectionToParty = _currGroupPrimaryDirToParty;
 
@@ -1600,7 +1600,7 @@ void GroupMan::setOrderedCellsToAttack(signed char *orderedCellsToAttack, int16 
 		orderedCellsToAttack[i] = attackOrder[orderedCellsToAttackIndex][i];
 }
 
-void GroupMan::stealFromChampion(Group *group, uint16 championIndex) {
+void GroupMan::stealFromChampion(byte *group, uint16 championIndex) {
 	static unsigned char G0394_auc_StealFromSlotIndices[8]; /* Initialized with 0 bytes by C loader */
 	ChampionMan &championMan = *_vm->_championMan;
 
@@ -1617,13 +1617,13 @@ void GroupMan::stealFromChampion(Group *group, uint16 championIndex) {
 		if ((slotThing != _vm->_thingNone)) {
 			objectStolen = true;
 			slotThing = championMan.getObjectRemovedFromSlot(championIndex, stealFromSlotIndex);
-			if (group->_slot == _vm->_thingEndOfList) {
-				group->_slot = slotThing;
+			if (GROUP_slot(group) == _vm->_thingEndOfList) {
+				GROUP_setSlot(group, slotThing);
 				/* BUG0_12 An object is cloned and appears at two different locations in the dungeon and/or inventory. The game may crash when interacting with this object. If a Giggler with no possessions steals an object that was previously in a chest and was not the last object in the chest then the objects that followed it are cloned. In the chest, the object is part of a linked list of objects that is not reset when the object is removed from the chest and placed in the inventory (but not in the dungeon), nor when it is stolen and added as the first Giggler possession. If the Giggler already has a possession before stealing the object then this does not create a cloned object.
 				The following statement is missing: L0394_T_Thing->Next = _vm->_endOfList;
 				This creates cloned things if L0394_T_Thing->Next is not _vm->_endOfList which is the case when the object comes from a chest in which it was not the last object */
 			} else {
-				_vm->_dungeonMan->linkThingToList(slotThing, group->_slot, kDMMapXNotOnASquare, 0);
+				_vm->_dungeonMan->linkThingToList(slotThing, GROUP_slot(group), kDMMapXNotOnASquare, 0);
 			}
 			championMan.drawChampionState((ChampionIndex)championIndex);
 		}
@@ -1632,12 +1632,12 @@ void GroupMan::stealFromChampion(Group *group, uint16 championIndex) {
 		percentage -= 20;
 	}
 	if (!_vm->getRandomNumber(8) || (objectStolen && _vm->getRandomNumber(2))) {
-		_activeGroups[group->getActiveGroupIndex()]._delayFleeingFromTarget = _vm->getRandomNumber(64) + 20;
-		group->setBehaviour(kDMBehaviorFlee);
+		_activeGroups[GROUP_cells(group)]._delayFleeingFromTarget = _vm->getRandomNumber(64) + 20;
+		GROUP_setBehaviour(group, kDMBehaviorFlee);
 	}
 }
 
-int16 GroupMan::getChampionDamage(Group *group, uint16 champIndex) {
+int16 GroupMan::getChampionDamage(byte *group, uint16 champIndex) {
 	unsigned char allowedWoundMasks[4] = {32, 16, 8, 4}; // @ G0024_auc_Graphic562_WoundProbabilityIndexToWoundMask
 	ChampionMan &championMan = *_vm->_championMan;
 
@@ -1654,7 +1654,7 @@ int16 GroupMan::getChampionDamage(Group *group, uint16 champIndex) {
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
 	int16 doubledMapDifficulty = dungeon._currMap->_difficulty << 1;
-	CreatureInfo creatureInfo = dungeon._creatureInfos[group->_type];
+	CreatureInfo creatureInfo = dungeon._creatureInfos[GROUP_type(group)];
 	championMan.addSkillExperience(champIndex, kDMSkillParry, creatureInfo.getExperience());
 	if (championMan._partyIsSleeping || (((championMan.getDexterity(curChampion) < (_vm->getRandomNumber(32) + creatureInfo._dexterity + doubledMapDifficulty - 16)) || !_vm->getRandomNumber(4)) && !championMan.isLucky(curChampion, 60))) {
 		uint16 allowedWound;
@@ -1707,8 +1707,8 @@ int16 GroupMan::getChampionDamage(Group *group, uint16 champIndex) {
 
 void GroupMan::dropMovingCreatureFixedPossession(Thing thing, int16 mapX, int16 mapY) {
 	if (_dropMovingCreatureFixedPossCellCount) {
-		Group *group = (Group *)_vm->_dungeonMan->getThingData(thing);
-		CreatureType creatureType = group->_type;
+		byte *group = _vm->_dungeonMan->getThingData(thing);
+		CreatureType creatureType = GROUP_type(group);
 		while (_dropMovingCreatureFixedPossCellCount) {
 			dropCreatureFixedPossessions(creatureType, mapX, mapY, _dropMovingCreatureFixedPossessionsCell[--_dropMovingCreatureFixedPossCellCount], kDMSoundModePlayOneTickLater);
 		}
@@ -1718,14 +1718,14 @@ void GroupMan::dropMovingCreatureFixedPossession(Thing thing, int16 mapX, int16 
 void GroupMan::startWandering(int16 mapX, int16 mapY) {
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
-	Group *L0332_ps_Group = (Group *)dungeon.getThingData(groupGetThing(mapX, mapY));
-	if (L0332_ps_Group->getBehaviour() >= kDMBehaviorUnknown4)
-		L0332_ps_Group->setBehaviour(kDMBehaviorWander);
+	byte *L0332_ps_Group = dungeon.getThingData(groupGetThing(mapX, mapY));
+	if (GROUP_getBehaviour(L0332_ps_Group) >= kDMBehaviorUnknown4)
+		GROUP_setBehaviour(L0332_ps_Group, kDMBehaviorWander);
 
 	TimelineEvent nextEvent;
 	nextEvent._mapTime = _vm->setMapAndTime(dungeon._currMapIndex, (_vm->_gameTime + 1));
 	nextEvent._type = kDMEventTypeUpdateBehaviourGroup;
-	nextEvent._priority = kDMMovementTicksImmobile - dungeon._creatureInfos[L0332_ps_Group->_type]._movementTicks; /* The fastest creatures (with small MovementTicks value) get higher event priority */
+	nextEvent._priority = kDMMovementTicksImmobile - dungeon._creatureInfos[GROUP_type(L0332_ps_Group)]._movementTicks; /* The fastest creatures (with small MovementTicks value) get higher event priority */
 	nextEvent._Cu._ticks = 0;
 	nextEvent._Bu._location._mapX = mapX;
 	nextEvent._Bu._location._mapY = mapY;
@@ -1746,17 +1746,17 @@ void GroupMan::addActiveGroup(Thing thing, int16 mapX, int16 mapY) {
 	_currActiveGroupCount++;
 
 	activeGroup->_groupThingIndex = (thing).getIndex();
-	Group *curGroup = (Group *)(dungeon._thingData[kDMThingTypeGroup] +
+	byte *curGroup = (byte *)(dungeon._thingData[kDMThingTypeGroup] +
 		dungeon._thingDataWordCount[kDMThingTypeGroup] * activeGroup->_groupThingIndex);
 
-	activeGroup->_cells = curGroup->_cells;
-	curGroup->getActiveGroupIndex() = activeGroupIndex;
+	activeGroup->_cells = GROUP_cells(curGroup);
+	GROUP_setCells(curGroup, activeGroupIndex);
 	activeGroup->_priorMapX = activeGroup->_homeMapX = mapX;
 	activeGroup->_priorMapY = activeGroup->_homeMapY = mapY;
 	activeGroup->_lastMoveTime = _vm->_gameTime - 127;
-	uint16 creatureIndex = curGroup->getCount();
+	uint16 creatureIndex = GROUP_getCount(curGroup);
 	do {
-		activeGroup->_directions = getGroupValueUpdatedWithCreatureValue(activeGroup->_directions, creatureIndex, curGroup->getDir());
+		activeGroup->_directions = getGroupValueUpdatedWithCreatureValue(activeGroup->_directions, creatureIndex, GROUP_getDir(curGroup));
 		activeGroup->_aspect[creatureIndex] = 0;
 	} while (creatureIndex--);
 	getCreatureAspectUpdateTime(activeGroup, kDMWholeCreatureGroup, false);
@@ -1767,12 +1767,12 @@ void GroupMan::removeActiveGroup(uint16 activeGroupIndex) {
 		return;
 
 	ActiveGroup *activeGroup = &_activeGroups[activeGroupIndex];
-	Group *group = &((Group *)_vm->_dungeonMan->_thingData[kDMThingTypeGroup])[activeGroup->_groupThingIndex];
+	byte *group = (byte *)(_vm->_dungeonMan->_thingData[kDMThingTypeGroup] + activeGroup->_groupThingIndex * _vm->_dungeonMan->_thingDataWordCount[kDMThingTypeGroup]);
 	_currActiveGroupCount--;
-	group->_cells = activeGroup->_cells;
-	group->setDir(_vm->normalizeModulo4(activeGroup->_directions));
-	if (group->getBehaviour() >= kDMBehaviorUnknown4) {
-		group->setBehaviour(kDMBehaviorWander);
+	GROUP_setCells(group, activeGroup->_cells);
+	GROUP_setDir(group, _vm->normalizeModulo4(activeGroup->_directions));
+	if (GROUP_getBehaviour(group) >= kDMBehaviorUnknown4) {
+		GROUP_setBehaviour(group, kDMBehaviorWander);
 	}
 	activeGroup->_groupThingIndex = -1;
 }
@@ -1816,11 +1816,11 @@ Thing GroupMan::groupGetGenerated(CreatureType creatureType, int16 healthMultipl
 		|| (groupThing == _vm->_thingNone)) {
 		return _vm->_thingNone;
 	}
-	Group *group = (Group *)dungeon.getThingData(groupThing);
-	group->_slot = _vm->_thingEndOfList;
-	group->setDoNotDiscard(false);
-	group->setDir(dir);
-	group->setCount(creatureCount);
+	byte *group = dungeon.getThingData(groupThing);
+	GROUP_setSlot(group, _vm->_thingEndOfList);
+	GROUP_setDoNotDiscard(group, false);
+	GROUP_setDir(group, dir);
+	GROUP_setCount(group, creatureCount);
 	bool severalCreaturesInGroup = creatureCount;
 	uint16 cell = 0;
 	uint16 groupCells = 0;
@@ -1829,11 +1829,11 @@ Thing GroupMan::groupGetGenerated(CreatureType creatureType, int16 healthMultipl
 	else
 		groupCells = kDMCreatureTypeSingleCenteredCreature;
 
-	group->_type = creatureType;
-	CreatureInfo *creatureInfo = &_vm->_dungeonMan->_creatureInfos[group->_type];
+	GROUP_setType(group, creatureType);
+	CreatureInfo *creatureInfo = &_vm->_dungeonMan->_creatureInfos[GROUP_type(group)];
 	uint16 baseHealth = creatureInfo->_baseHealth;
 	do {
-		group->_health[creatureCount] = (baseHealth * healthMultiplier) + _vm->getRandomNumber((baseHealth >> 2) + 1);
+		GROUP_setHealth(group, creatureCount, (baseHealth * healthMultiplier) + _vm->getRandomNumber((baseHealth >> 2) + 1));
 		if (severalCreaturesInGroup) {
 			groupCells = getGroupValueUpdatedWithCreatureValue(groupCells, creatureCount, cell++);
 			if (getFlag(creatureInfo->_attributes, kDMCreatureMaskSize) == kDMCreatureSizeHalf)
@@ -1842,7 +1842,7 @@ Thing GroupMan::groupGetGenerated(CreatureType creatureType, int16 healthMultipl
 			cell &= 0x0003;
 		}
 	} while (creatureCount--);
-	group->_cells = groupCells;
+	GROUP_setCells(group, groupCells);
 	if (_vm->_moveSens->getMoveResult(groupThing, kDMMapXNotOnASquare, 0, mapX, mapY)) {
 		/* If F0267_MOVE_GetMoveResult_CPSCE returns true then the group was either killed by a projectile
 		   impact (in which case the thing data was marked as unused) or the party is on the destination
@@ -1869,7 +1869,7 @@ int16 GroupMan::getMeleeTargetCreatureOrdinal(int16 groupX, int16 groupY, int16 
 	if (groupThing == _vm->_thingEndOfList)
 		return 0;
 
-	Group *group = (Group *)_vm->_dungeonMan->getThingData(groupThing);
+	byte *group = _vm->_dungeonMan->getThingData(groupThing);
 	signed char orderedCellsToAttack[4];
 	setOrderedCellsToAttack(orderedCellsToAttack, groupX, groupY, partyX, partyY, champCell);
 	uint16 counter = 0;
@@ -1882,7 +1882,7 @@ int16 GroupMan::getMeleeTargetCreatureOrdinal(int16 groupX, int16 groupY, int16 
 	}
 }
 
-int16 GroupMan::getMeleeActionDamage(Champion *champ, int16 champIndex, Group *group, int16 creatureIndex, int16 mapX, int16 mapY, uint16 actionHitProbability, uint16 actionDamageFactor, int16 skillIndex) {
+int16 GroupMan::getMeleeActionDamage(Champion *champ, int16 champIndex, byte *group, int16 creatureIndex, int16 mapX, int16 mapY, uint16 actionHitProbability, uint16 actionDamageFactor, int16 skillIndex) {
 	int16 L0565_i_Damage = 0;
 	int16 L0566_i_Damage = 0;
 	int16 defense;
@@ -1898,7 +1898,7 @@ int16 GroupMan::getMeleeActionDamage(Champion *champ, int16 champIndex, Group *g
 		return 0;
 
 	int16 doubledMapDifficulty = dungeon._currMap->_difficulty << 1;
-	CreatureInfo *creatureInfo = &dungeon._creatureInfos[group->_type];
+	CreatureInfo *creatureInfo = &dungeon._creatureInfos[GROUP_type(group)];
 	int16 actionHandObjectIconIndex = _vm->_objectMan->getIconIndex(champ->_slots[kDMSlotActionHand]);
 	bool actionHitsNonMaterialCreatures = getFlag(actionHitProbability, kDMActionMaskHitNonMaterialCreatures);
 	if (actionHitsNonMaterialCreatures)
@@ -2017,8 +2017,8 @@ uint16 GroupMan::isLordChaosOnSquare(int16 mapX, int16 mapY) {
 	if (thing == _vm->_thingEndOfList)
 		return 0;
 
-	Group *group = (Group *)_vm->_dungeonMan->getThingData(thing);
-	if (group->_type == kDMCreatureTypeLordChaos)
+	byte *group = _vm->_dungeonMan->getThingData(thing);
+	if (GROUP_type(group) == kDMCreatureTypeLordChaos)
 		return thing.toUint16();
 
 	return 0;

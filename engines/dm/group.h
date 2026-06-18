@@ -30,6 +30,7 @@
 #include "dm/dm.h"
 #include "dm/sounds.h"
 #include "dm/timeline.h"
+#include "common/endian.h"
 
 namespace DM {
 	class Champion;
@@ -124,34 +125,33 @@ public:
 	byte _aspect[4];
 }; // @ ACTIVE_GROUP
 
-class Group {
-public:
-	Thing _nextThing;
-	Thing _slot;
-	CreatureType _type;
-	uint16 _cells;
-	uint16 _health[4];
-	uint16 _flags;
-public:
-	explicit Group(uint16 *rawDat) : _nextThing(rawDat[0]), _slot(rawDat[1]), _cells(rawDat[3]), _flags(rawDat[8]) {
-		_type = (CreatureType)rawDat[2];
-		_health[0] = rawDat[4];
-		_health[1] = rawDat[5];
-		_health[2] = rawDat[6];
-		_health[3] = rawDat[7];
-	}
+// @ GROUP
+#define GROUP_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define GROUP_setNextThing(address, val) WRITE_LE_UINT16(address, (val).toUint16())
 
-	uint16 &getActiveGroupIndex() { return _cells; }
+#define GROUP_slot(address) (Thing(READ_LE_UINT16((address) + 2)))
+#define GROUP_setSlot(address, val) WRITE_LE_UINT16((address) + 2, (val).toUint16())
 
-	uint16 getBehaviour() { return _flags & 0xF; }
-	uint16 setBehaviour(uint16 val) { _flags = (_flags & ~0xF) | (val & 0xF); return (val & 0xF); }
-	uint16 getCount() { return (_flags >> 5) & 0x3; }
-	void setCount(uint16 val) { _flags = (_flags & ~(0x3 << 5)) | ((val & 0x3) << 5); }
-	Direction getDir() { return (Direction)((_flags >> 8) & 0x3); }
-	void setDir(uint16 val) { _flags = (_flags & ~(0x3 << 8)) | ((val & 0x3) << 8); }
-	uint16 getDoNotDiscard() { return (_flags >> 10) & 0x1; }
-	void setDoNotDiscard(bool val) { _flags = (_flags & ~(1 << 10)) | ((val & 1) << 10); }
-}; // @ GROUP
+#define GROUP_type(address) ((CreatureType)READ_LE_UINT16((address) + 4))
+#define GROUP_setType(address, val) WRITE_LE_UINT16((address) + 4, (val))
+
+#define GROUP_cells(address) READ_LE_UINT16((address) + 6)
+#define GROUP_setCells(address, val) WRITE_LE_UINT16((address) + 6, (val))
+
+#define GROUP_health(address, idx) READ_LE_UINT16((address) + 8 + 2 * (idx))
+#define GROUP_setHealth(address, idx, val) WRITE_LE_UINT16((address) + 8 + 2 * (idx), (val))
+
+#define GROUP_flags(address) READ_LE_UINT16((address) + 16)
+#define GROUP_setFlags(address, val) WRITE_LE_UINT16((address) + 16, val)
+
+#define GROUP_getBehaviour(address) (GROUP_flags(address) & 0xF)
+#define GROUP_setBehaviour(address, val) (GROUP_setFlags(address, (GROUP_flags(address) & ~0xF) | ((val) & 0xF)), (val) & 0xF)
+#define GROUP_getCount(address) ((GROUP_flags(address) >> 5) & 0x3)
+#define GROUP_setCount(address, val) GROUP_setFlags(address, (GROUP_flags(address) & ~(0x3 << 5)) | (((val) & 0x3) << 5))
+#define GROUP_getDir(address) ((Direction)((GROUP_flags(address) >> 8) & 0x3))
+#define GROUP_setDir(address, val) GROUP_setFlags(address, (GROUP_flags(address) & ~(0x3 << 8)) | (((val) & 0x3) << 8))
+#define GROUP_getDoNotDiscard(address) ((GROUP_flags(address) >> 10) & 0x1)
+#define GROUP_setDoNotDiscard(address, val) GROUP_setFlags(address, (GROUP_flags(address) & ~(1 << 10)) | (((val) & 1) << 10))
 
 class GroupMan {
 	DMEngine *_vm;
@@ -183,9 +183,9 @@ public:
 	~GroupMan();
 
 	void initActiveGroups(); // @ F0196_GROUP_InitializeActiveGroups
-	uint16 getGroupCells(Group *group, int16 mapIndex); // @ F0145_DUNGEON_GetGroupCells
-	uint16 getGroupDirections(Group *group, int16 mapIndex); // @ F0147_DUNGEON_GetGroupDirections
-	int16 getCreatureOrdinalInCell(Group *group, uint16 cell); // @ F0176_GROUP_GetCreatureOrdinalInCell
+	uint16 getGroupCells(byte *group, int16 mapIndex); // @ F0145_DUNGEON_GetGroupCells
+	uint16 getGroupDirections(byte *group, int16 mapIndex); // @ F0147_DUNGEON_GetGroupDirections
+	int16 getCreatureOrdinalInCell(byte *group, uint16 cell); // @ F0176_GROUP_GetCreatureOrdinalInCell
 	uint16 getCreatureValue(uint16 groupVal, uint16 creatureIndex); // @ M50_CREATURE_VALUE
 	void dropGroupPossessions(int16 mapX, int16 mapY, Thing groupThing, SoundMode mode); // @ F0188_GROUP_DropGroupPossessions
 	void dropCreatureFixedPossessions(CreatureType creatureType, int16 mapX, int16 mapY, uint16 cell,
@@ -197,12 +197,12 @@ public:
 	bool groupIsDoorDestoryedByAttack(uint16 mapX, uint16 mapY, int16 attack,
 										   bool magicAttack, int16 ticks); // @ F0232_GROUP_IsDoorDestroyedByAttack
 	Thing groupGetThing(int16 mapX, int16 mapY); // @ F0175_GROUP_GetThing
-	int16 groupGetDamageCreatureOutcome(Group *group, uint16 creatureIndex,
+	int16 groupGetDamageCreatureOutcome(byte *group, uint16 creatureIndex,
 											 int16 mapX, int16 mapY, int16 damage, bool notMoving); // @ F0190_GROUP_GetDamageCreatureOutcome
 	void groupDelete(int16 mapX, int16 mapY); // @ F0189_GROUP_Delete
 	void groupDeleteEvents(int16 mapX, int16 mapY); // @ F0181_GROUP_DeleteEvents
 	uint16 getGroupValueUpdatedWithCreatureValue(uint16 groupVal, uint16 creatureIndex, uint16 creatureVal); // @ F0178_GROUP_GetGroupValueUpdatedWithCreatureValue
-	int16 getDamageAllCreaturesOutcome(Group *group, int16 mapX, int16 mapY, int16 attack, bool notMoving); // @ F0191_GROUP_GetDamageAllCreaturesOutcome
+	int16 getDamageAllCreaturesOutcome(byte *group, int16 mapX, int16 mapY, int16 attack, bool notMoving); // @ F0191_GROUP_GetDamageAllCreaturesOutcome
 	int16 groupGetResistanceAdjustedPoisonAttack(CreatureType creatureType, int16 poisonAttack); // @ F0192_GROUP_GetResistanceAdjustedPoisonAttack
 	void processEvents29to41(int16 eventMapX, int16 eventMapY, TimelineEventType eventType, uint16 ticks); // @ F0209_GROUP_ProcessEvents29to41
 	bool isMovementPossible(CreatureInfo *creatureInfo, int16 mapX, int16 mapY,
@@ -210,7 +210,7 @@ public:
 	int16 getDistanceBetweenSquares(int16 srcMapX, int16 srcMapY, int16 destMapX,
 										 int16 destMapY); // @ F0226_GROUP_GetDistanceBetweenSquares
 
-	int16 groupGetDistanceToVisibleParty(Group *group, int16 creatureIndex, int16 mapX, int16 mapY); // @ F0200_GROUP_GetDistanceToVisibleParty
+	int16 groupGetDistanceToVisibleParty(byte *group, int16 creatureIndex, int16 mapX, int16 mapY); // @ F0200_GROUP_GetDistanceToVisibleParty
 	int16 getDistanceBetweenUnblockedSquares(int16 srcMapX, int16 srcMapY,
 												  int16 destMapX, int16 destMapY, bool (GroupMan::*isBlocked)(uint16, uint16)); // @ F0199_GROUP_GetDistanceBetweenUnblockedSquares
 	bool isViewPartyBlocked(uint16 mapX, uint16 mapY); // @ F0197_GROUP_IsViewPartyBlocked
@@ -226,11 +226,11 @@ public:
 							   int16 creatureSize); // @ F0206_GROUP_SetDirectionGroup
 	void stopAttacking(ActiveGroup *group, int16 mapX, int16 mapY);// @ F0182_GROUP_StopAttacking
 	bool isArchenemyDoubleMovementPossible(CreatureInfo *info, int16 mapX, int16 mapY, uint16 dir); // @ F0204_GROUP_IsArchenemyDoubleMovementPossible
-	bool isCreatureAttacking(Group *group, int16 mapX, int16 mapY, uint16 creatureIndex); // @ F0207_GROUP_IsCreatureAttacking
+	bool isCreatureAttacking(byte *group, int16 mapX, int16 mapY, uint16 creatureIndex); // @ F0207_GROUP_IsCreatureAttacking
 	void setOrderedCellsToAttack(signed char *orderedCellsToAttack, int16 targetMapX,
 	                                  int16 targetMapY, int16 attackerMapX, int16 attackerMapY, uint16 cellSource); // @ F0229_GROUP_SetOrderedCellsToAttack
-	void stealFromChampion(Group *group, uint16 championIndex); // @ F0193_GROUP_StealFromChampion
-	int16 getChampionDamage(Group *group, uint16 champIndex); // @ F0230_GROUP_GetChampionDamage
+	void stealFromChampion(byte *group, uint16 championIndex); // @ F0193_GROUP_StealFromChampion
+	int16 getChampionDamage(byte *group, uint16 champIndex); // @ F0230_GROUP_GetChampionDamage
 	void dropMovingCreatureFixedPossession(Thing thing, int16 mapX, int16 mapY); // @ F0187_GROUP_DropMovingCreatureFixedPossessions
 	void startWandering(int16 mapX, int16 mapY); // @ F0180_GROUP_StartWandering
 	void addActiveGroup(Thing thing, int16 mapX, int16 mapY); // @ F0183_GROUP_AddActiveGroup
@@ -241,7 +241,7 @@ public:
 	bool isSquareACorridorTeleporterPitOrDoor(int16 mapX, int16 mapY); // @ F0223_GROUP_IsSquareACorridorTeleporterPitOrDoor
 	int16 getMeleeTargetCreatureOrdinal(int16 groupX, int16 groupY, int16 partyX, int16 paryY,
 											 uint16 champCell); // @ F0177_GROUP_GetMeleeTargetCreatureOrdinal
-	int16 getMeleeActionDamage(Champion *champ, int16 champIndex, Group *group, int16 creatureIndex,
+	int16 getMeleeActionDamage(Champion *champ, int16 champIndex, byte *group, int16 creatureIndex,
 									int16 mapX, int16 mapY, uint16 actionHitProbability, uint16 actionDamageFactor, int16 skillIndex); // @ F0231_GROUP_GetMeleeActionDamage
 	void fluxCageAction(int16 mapX, int16 mapY); // @ F0224_GROUP_FluxCageAction
 	uint16 isLordChaosOnSquare(int16 mapX, int16 mapY); // @ F0222_GROUP_IsLordChaosOnSquare

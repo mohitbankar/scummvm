@@ -81,7 +81,7 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 	Potion *potion = nullptr;
 	Thing explosionThing = _vm->_thingNone;
 	if (projectileAssociatedThingType == kDMThingTypePotion) {
-		Group *projectileAssociatedGroup = (Group *)_vm->_dungeonMan->getThingData(projectileAssociatedThing);
+		byte *projectileAssociatedGroup = _vm->_dungeonMan->getThingData(projectileAssociatedThing);
 		PotionType potionType = ((Potion *)projectileAssociatedGroup)->getType();
 		if ((potionType == kDMPotionTypeVen) || (potionType == kDMPotionTypeFulBomb)) {
 			explosionThing = (potionType == kDMPotionTypeVen) ? _vm->_thingExplPoisonCloud: _vm->_thingExplFireBall;
@@ -91,7 +91,7 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 		}
 	}
 	bool createExplosionOnImpact = (projectileAssociatedThingType == kDMThingTypeExplosion) && (projectileAssociatedThing != _vm->_thingExplSlime) && (projectileAssociatedThing != _vm->_thingExplPoisonBolt);
-	Thing *curGroupSlot = nullptr;
+	byte *targetGroup = nullptr;
 	int16 projectileMapX;
 	int16 projectileMapY;
 	int16 projectileTargetMapX = mapXCombo;
@@ -156,17 +156,18 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 		championAttack = attack = getProjectileImpactAttack(projectileThingData, projectileAssociatedThing);
 		break;
 	case kDMElementTypeCreature: {
-		Group *curGroup = (Group *)_vm->_dungeonMan->getThingData(_vm->_groupMan->groupGetThing(projectileTargetMapX, projectileTargetMapY));
+		byte *curGroup = _vm->_dungeonMan->getThingData(_vm->_groupMan->groupGetThing(projectileTargetMapX, projectileTargetMapY));
 		uint16 curCreatureIndex = _vm->_groupMan->getCreatureOrdinalInCell(curGroup, cell);
 		if (!curCreatureIndex)
 			return false;
 
 		curCreatureIndex--;
-		CreatureType curCreatureType = curGroup->_type;
+		CreatureType curCreatureType = GROUP_type(curGroup);
 		CreatureInfo *curCreatureInfo = &_vm->_dungeonMan->_creatureInfos[curCreatureType];
 		if ((projectileAssociatedThing == _vm->_thingExplFireBall) && (curCreatureType == kDMCreatureTypeBlackFlame)) {
-			uint16 *curCreatureHealth = &curGroup->_health[curCreatureIndex];
-			*curCreatureHealth = MIN(1000, *curCreatureHealth + getProjectileImpactAttack(projectileThingData, projectileAssociatedThing));
+			uint16 curHealth = GROUP_health(curGroup, curCreatureIndex);
+			curHealth = MIN(1000, curHealth + getProjectileImpactAttack(projectileThingData, projectileAssociatedThing));
+			GROUP_setHealth(curGroup, curCreatureIndex, curHealth);
 			goto T0217044;
 		}
 		if (getFlag(curCreatureInfo->_attributes, kDMCreatureMaskNonMaterial) && (projectileAssociatedThing != _vm->_thingExplHarmNonMaterial))
@@ -187,7 +188,7 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 				if ((weaponType == kDMWeaponDagger) || (weaponType == kDMWeaponArrow)
 				|| (weaponType == kDMWeaponSlayer) || (weaponType == kDMWeaponPoisonDart)
 				|| (weaponType == kDMWeaponThrowingStar))
-					curGroupSlot = &curGroup->_slot;
+					targetGroup = curGroup;
 			}
 		}
 		}
@@ -227,7 +228,7 @@ T0217044:
 		projectileThingData->_slot = explosionThing;
 	}
 	_vm->_dungeonMan->unlinkThingFromList(projectileThing, Thing(0), projectileMapX, projectileMapY);
-	projectileDelete(projectileThing, curGroupSlot, projectileMapX, projectileMapY);
+	projectileDelete(projectileThing, targetGroup, projectileMapX, projectileMapY);
 	return true;
 }
 
@@ -331,8 +332,8 @@ void ProjExpl::createExplosion(Thing explThing, uint16 attack, uint16 mapXCombo,
 			} else {
 				unusedThing = _vm->_groupMan->groupGetThing(projectileMapX, projectileMapY);
 				if (unusedThing != _vm->_thingEndOfList) {
-					Group *creatureGroup = (Group *)_vm->_dungeonMan->getThingData(unusedThing);
-					CreatureInfo *creatureInfo = &_vm->_dungeonMan->_creatureInfos[creatureGroup->_type];
+					byte *creatureGroup = _vm->_dungeonMan->getThingData(unusedThing);
+					CreatureInfo *creatureInfo = &_vm->_dungeonMan->_creatureInfos[GROUP_type(creatureGroup)];
 					int16 creatureFireResistance = creatureInfo->getFireResistance();
 					if (creatureFireResistance != kDMImmuneToFire) {
 						if (getFlag(creatureInfo->_attributes, kDMCreatureMaskNonMaterial))
@@ -372,16 +373,16 @@ void ProjExpl::projectileDeleteEvent(Thing thing) {
 	_vm->_timeline->deleteEvent(projectile->_eventIndex);
 }
 
-void ProjExpl::projectileDelete(Thing projectileThing, Thing *groupSlot, int16 mapX, int16 mapY) {
+void ProjExpl::projectileDelete(Thing projectileThing, byte *group, int16 mapX, int16 mapY) {
 	Projectile *projectile = (Projectile *)_vm->_dungeonMan->getThingData(projectileThing);
 	Thing projectileSlotThing = projectile->_slot;
 	if (projectileSlotThing.getType() != kDMThingTypeExplosion) {
-		if (groupSlot != nullptr) {
-			Thing previousThing = *groupSlot;
+		if (group != nullptr) {
+			Thing previousThing = GROUP_slot(group);
 			if (previousThing == _vm->_thingEndOfList) {
 				Thing *genericThing = (Thing *)_vm->_dungeonMan->getThingData(projectileSlotThing);
 				*genericThing = _vm->_thingEndOfList;
-				*groupSlot = projectileSlotThing;
+				GROUP_setSlot(group, projectileSlotThing);
 			} else
 				_vm->_dungeonMan->linkThingToList(projectileSlotThing, previousThing, kDMMapXNotOnASquare, 0);
 		} else
@@ -479,14 +480,14 @@ void ProjExpl::processEvent25(TimelineEvent *event) {
 	bool explosionOnPartySquare = (_vm->_dungeonMan->_currMapIndex == _vm->_dungeonMan->_partyMapIndex) && (mapX == _vm->_dungeonMan->_partyMapX) && (mapY == _vm->_dungeonMan->_partyMapY);
 	Thing groupThing = _vm->_groupMan->groupGetThing(mapX, mapY);
 
-	Group *group = nullptr;
+	byte *group = nullptr;
 	CreatureInfo *creatureInfo = nullptr;
 
 	CreatureType creatureType;
 	creatureType = kDMCreatureTypeGiantScorpion; // Value of 0 as default to avoid possible uninitialized usage
 	if (groupThing != _vm->_thingEndOfList) {
-		group = (Group *)_vm->_dungeonMan->getThingData(groupThing);
-		creatureType = group->_type;
+		group = _vm->_dungeonMan->getThingData(groupThing);
+		creatureType = GROUP_type(group);
 		creatureInfo = &_vm->_dungeonMan->_creatureInfos[creatureType];
 	}
 
@@ -517,9 +518,9 @@ void ProjExpl::processEvent25(TimelineEvent *event) {
 				attack -= nonMaterialAdditionalAttack;
 				nonMaterialAdditionalAttack <<= 1;
 				nonMaterialAdditionalAttack++;
-				int16 creatureCount = group->getCount();
+				int16 creatureCount = GROUP_getCount(group);
 				do {
-					if (getFlag(_vm->_groupMan->_activeGroups[group->getActiveGroupIndex()]._aspect[creatureCount], kDMAspectMaskActiveGroupIsAttacking)) /* Materializer / Zytaz can only be damaged while they are attacking */
+					if (getFlag(_vm->_groupMan->_activeGroups[GROUP_cells(group)]._aspect[creatureCount], kDMAspectMaskActiveGroupIsAttacking)) /* Materializer / Zytaz can only be damaged while they are attacking */
 						_vm->_groupMan->groupGetDamageCreatureOutcome(group, creatureCount, mapX, mapY, attack + _vm->getRandomNumber(nonMaterialAdditionalAttack) + _vm->getRandomNumber(4), true);
 				} while (--creatureCount >= 0);
 			} else

@@ -921,8 +921,8 @@ void DMEngine::fuseSequence() {
 	lordChaosMapX += _dirIntoStepCountEast[_dungeonMan->_partyDir];
 	lordChaosMapY += _dirIntoStepCountNorth[_dungeonMan->_partyDir];
 	Thing lordChaosThing = _groupMan->groupGetThing(lordChaosMapX, lordChaosMapY);
-	Group *lordGroup = (Group*)_dungeonMan->getThingData(lordChaosThing);
-	lordGroup->_health[0] = 10000;
+	byte *lordGroup = _dungeonMan->getThingData(lordChaosThing);
+	GROUP_setHealth(lordGroup, 0, 10000);
 	_dungeonMan->setGroupCells(lordGroup, kDMCreatureTypeSingleCenteredCreature, _dungeonMan->_partyMapIndex);
 	_dungeonMan->setGroupDirections(lordGroup, returnOppositeDir(_dungeonMan->_partyDir), _dungeonMan->_partyMapIndex);
 
@@ -956,7 +956,7 @@ void DMEngine::fuseSequence() {
 		fuseSequenceUpdate();
 	}
 	_sound->requestPlay(kDMSoundIndexBuzz, lordChaosMapX, lordChaosMapY, kDMSoundModePlayIfPrioritized);
-	lordGroup->_type = kDMCreatureTypeLordOrder;
+	GROUP_setType(lordGroup, kDMCreatureTypeLordOrder);
 	fuseSequenceUpdate();
 	for (int16 attackId = 55; attackId <= 255; attackId += 40) {
 		_projexpl->createExplosion(_thingExplHarmNonMaterial, attackId, lordChaosMapX, lordChaosMapY, kDMCreatureTypeSingleCenteredCreature);
@@ -965,7 +965,7 @@ void DMEngine::fuseSequence() {
 	for (int16 cycleCount = 3; cycleCount > 0; cycleCount--) {
 		for (int16 switchCount = 4; switchCount > 0; switchCount--) {
 			_sound->requestPlay(kDMSoundIndexBuzz, lordChaosMapX, lordChaosMapY, kDMSoundModePlayIfPrioritized);
-			lordGroup->_type = (switchCount & 0x0001) ? kDMCreatureTypeLordOrder : kDMCreatureTypeLordChaos;
+			GROUP_setType(lordGroup, (switchCount & 0x0001) ? kDMCreatureTypeLordOrder : kDMCreatureTypeLordChaos);
 			for (int16 fuseSequenceUpdateCount = cycleCount - 1; fuseSequenceUpdateCount >= 0; fuseSequenceUpdateCount--)
 				fuseSequenceUpdate();
 		}
@@ -973,7 +973,7 @@ void DMEngine::fuseSequence() {
 	_projexpl->createExplosion(_thingExplFireBall, 255, lordChaosMapX, lordChaosMapY, kDMCreatureTypeSingleCenteredCreature);
 	_projexpl->createExplosion(_thingExplHarmNonMaterial, 255, lordChaosMapX, lordChaosMapY, kDMCreatureTypeSingleCenteredCreature);
 	fuseSequenceUpdate();
-	lordGroup->_type = kDMCreatureTypeGreyLord;
+	GROUP_setType(lordGroup, kDMCreatureTypeGreyLord);
 	fuseSequenceUpdate();
 	_displayMan->_doNotDrawFluxcagesDuringEndgame = true;
 	fuseSequenceUpdate();

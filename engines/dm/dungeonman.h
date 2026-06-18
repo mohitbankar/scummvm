@@ -602,8 +602,6 @@ public:
 	void resetToZero() { _attributes = _defense = 0; }
 }; // @ DOOR_INFO
 
-class Group;
-
 class DungeonMan {
 	DMEngine *_vm;
 
@@ -654,8 +652,8 @@ public:
 	uint16 getArmourDefense(ArmourInfo *armourInfo, bool useSharpDefense); // @ F0143_DUNGEON_GetArmourDefense
 	Thing getDiscardThing(uint16 thingType); // @ F0165_DUNGEON_GetDiscardedThing
 	uint16 getCreatureAttributes(Thing thing); // @ F0144_DUNGEON_GetCreatureAttributes
-	void setGroupCells(Group *group, uint16 cells, uint16 mapIndex); // @ F0146_DUNGEON_SetGroupCells
-	void setGroupDirections(Group *group, int16 dir, uint16 mapIndex); // @ F0148_DUNGEON_SetGroupDirections
+	void setGroupCells(byte *group, uint16 cells, uint16 mapIndex); // @ F0146_DUNGEON_SetGroupCells
+	void setGroupDirections(byte *group, int16 dir, uint16 mapIndex); // @ F0148_DUNGEON_SetGroupDirections
 	bool isCreatureAllowedOnMap(Thing thing, uint16 mapIndex); // @ F0139_DUNGEON_IsCreatureAllowedOnMap
 	void unlinkThingFromList(Thing thingToUnlink, Thing thingInList, int16 mapX, int16 mapY); // @ F0164_DUNGEON_UnlinkThingFromList
 	int16 getStairsExitDirection(int16 mapX, int16 mapY); // @ F0155_DUNGEON_GetStairsExitDirection

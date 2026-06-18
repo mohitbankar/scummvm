@@ -3181,7 +3181,7 @@ void DisplayMan::drawObjectsCreaturesProjectilesExplosions(Thing thingParam, Dir
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
 	int16 orderedViewCellOrdinals = cellOrder;
-	Group *group = nullptr;
+	byte *group = nullptr;
 	Thing groupThing = _vm->_thingNone;
 	bool squareHasExplosion = drawCreaturesCompleted = false;
 	bool squareHasProjectile = false;
@@ -3366,13 +3366,13 @@ T0115015_DrawProjectileAsObject:
 			goto T0115129_DrawProjectiles; /* Skip code to draw creatures */
 
 		if (group == nullptr) { /* If all creature data and info has not already been gathered */
-			group = (Group *)dungeon.getThingData(groupThing);
-			CreatureInfo *creatureInfo = &dungeon._creatureInfos[group->_type];
+			group = dungeon.getThingData(groupThing);
+			CreatureInfo *creatureInfo = &dungeon._creatureInfos[GROUP_type(group)];
 			creatureAspectStruct = &_creatureAspects219[creatureInfo->_creatureAspectIndex];
 			creatureSize = getFlag(creatureInfo->_attributes, kDMCreatureMaskSize);
 			creatureGraphicInfoGreen = creatureInfo->_graphicInfo;
 		}
-		activeGroup = &_vm->_groupMan->_activeGroups[group->getActiveGroupIndex()];
+		activeGroup = &_vm->_groupMan->_activeGroups[GROUP_cells(group)];
 		objectAspect = (ObjectAspect *)creatureAspectStruct;
 		AL_0_creatureIndexRed = _vm->_groupMan->getCreatureOrdinalInCell(group, cellYellowBear);
 
@@ -3414,7 +3414,7 @@ T0115015_DrawProjectileAsObject:
 					if (creatureIndexGreen < 0)
 						creatureIndexGreen = 0;
 
-					twoHalfSquareCreaturesFrontView = group->getCount();
+					twoHalfSquareCreaturesFrontView = GROUP_getCount(group);
 					AL_4_groupCells = _vm->_groupMan->getCreatureValue(AL_4_groupCells, AL_0_creatureIndexRed);
 					if ((AL_4_groupCells == directionParam) || (AL_4_groupCells == _vm->turnDirLeft(directionParam)))
 						AL_2_viewCell = k0_HalfSizedViewCell_LeftColumn;

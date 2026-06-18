@@ -414,7 +414,7 @@ void Timeline::processEventDoorAnimation(TimelineEvent *event) {
 		uint16 creatureAttributes;
 		if ((groupThing != _vm->_thingEndOfList) && !getFlag((creatureAttributes = _vm->_dungeonMan->getCreatureAttributes(groupThing)), kDMCreatureMaskNonMaterial)) {
 			if (doorState >= (verticalDoorFl ? CreatureInfo::getHeight(creatureAttributes) : 1)) { /* Creature height or 1 */
-				if (_vm->_groupMan->getDamageAllCreaturesOutcome((Group *)_vm->_dungeonMan->getThingData(groupThing), mapX, mapY, 5, true) != kDMKillOutcomeAllCreaturesInGroup)
+				if (_vm->_groupMan->getDamageAllCreaturesOutcome(_vm->_dungeonMan->getThingData(groupThing), mapX, mapY, 5, true) != kDMKillOutcomeAllCreaturesInGroup)
 					_vm->_groupMan->processEvents29to41(mapX, mapY, kDMEventTypeCreateReactionDangerOnSquare, 0);
 
 				int16 nextState = (int16)doorState - 1;
@@ -789,8 +789,8 @@ T0252001:
 	} else {
 		if (!randomDirectionMoveRetried) {
 			randomDirectionMoveRetried = true;
-			Group *group = (Group *)_vm->_dungeonMan->getThingData(Thing(event->_Cu._slot));
-			if ((group->_type == kDMCreatureTypeLordChaos) && !_vm->getRandomNumber(4)) {
+			byte *group = _vm->_dungeonMan->getThingData(Thing(event->_Cu._slot));
+			if ((GROUP_type(group) == kDMCreatureTypeLordChaos) && !_vm->getRandomNumber(4)) {
 				switch (_vm->getRandomNumber(4)) {
 				case 0:
 					mapX--;

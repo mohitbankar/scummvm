@@ -335,7 +335,7 @@ bool MovesensMan::getMoveResult(Thing thing, int16 mapX, int16 mapY, int16 destM
 						_useRopeToClimbDownPit = false;
 					} else if (thingType == kDMThingTypeGroup) {
 						dungeon.setCurrentMap(mapIndexSource);
-						uint16 outcome = _vm->_groupMan->getDamageAllCreaturesOutcome((Group *)dungeon.getThingData(thing), mapX, mapY, 20, false);
+						uint16 outcome = _vm->_groupMan->getDamageAllCreaturesOutcome(dungeon.getThingData(thing), mapX, mapY, 20, false);
 						dungeon.setCurrentMap(mapIndexDestination);
 						fallKilledGroup = (outcome == kDMKillOutcomeAllCreaturesInGroup);
 						if (fallKilledGroup)
@@ -433,8 +433,8 @@ bool MovesensMan::getMoveResult(Thing thing, int16 mapX, int16 mapY, int16 destM
 		} else {
 			if (thingType == kDMThingTypeGroup) {
 				dungeon.setCurrentMap(mapIndexDestination);
-				Teleporter *L0712_ps_Teleporter = (Teleporter *)dungeon.getThingData(thing);
-				int16 activeGroupIndex = ((Group *)L0712_ps_Teleporter)->getActiveGroupIndex();
+				byte *L0712_ps_Teleporter = dungeon.getThingData(thing);
+				int16 activeGroupIndex = GROUP_cells(L0712_ps_Teleporter);
 				if (((mapIndexDestination == dungeon._partyMapIndex) && (destMapX == dungeon._partyMapX) && (destMapY == dungeon._partyMapY)) || (_vm->_groupMan->groupGetThing(destMapX, destMapY) != _vm->_thingEndOfList)) { /* If a group tries to move to the party square or over another group then create an event to move the group later */
 					dungeon.setCurrentMap(mapIndexSource);
 					if (mapX >= 0)
@@ -446,8 +446,8 @@ bool MovesensMan::getMoveResult(Thing thing, int16 mapX, int16 mapY, int16 destM
 					createEventMoveGroup(thing, destMapX, destMapY, mapIndexDestination, audibleTeleporter);
 					return true; /* The specified group thing cannot be moved because the party or another group is on the destination square */
 				}
-				Group *tmpGroup = (Group *)dungeon._thingData[kDMThingTypeGroup];
-				uint16 movementSoundIndex = getSound((CreatureType)tmpGroup[thing.getIndex()]._type);
+				byte *tmpGroup = (byte *)(dungeon._thingData[kDMThingTypeGroup] + thing.getIndex() * dungeon._thingDataWordCount[kDMThingTypeGroup]);
+				uint16 movementSoundIndex = getSound(GROUP_type(tmpGroup));
 				if (movementSoundIndex < kDMSoundCount)
 					_vm->_sound->requestPlay(movementSoundIndex, destMapX, destMapY, kDMSoundModePlayIfPrioritized);
 
@@ -529,10 +529,10 @@ bool MovesensMan::moveIsKilledByProjectileImpact(int16 srcMapX, int16 srcMapY, i
 		}
 	} else {
 		impactType = kDMElementTypeCreature;
-		Group *curGroup = (Group *)dungeon.getThingData(thing);
+		byte *curGroup = dungeon.getThingData(thing);
 		int16 creatureAlive = 0;
 		for (uint16 cellIdx = kDMCellNorthWest; cellIdx < kDMCellSouthWest + 1; cellIdx++) {
-			creatureAlive |= curGroup->_health[cellIdx];
+			creatureAlive |= GROUP_health(curGroup, cellIdx);
 			if (_vm->_groupMan->getCreatureOrdinalInCell(curGroup, cellIdx))
 				championOrCreatureOrdinalInCell[cellIdx] = _vm->indexToOrdinal(cellIdx);
 		}
@@ -649,8 +649,8 @@ int16 MovesensMan::getSound(CreatureType creatureType) {
 
 int16 MovesensMan::getTeleporterRotatedGroupResult(Teleporter *teleporter, Thing thing, uint16 mapIndex) {
 	DungeonMan &dungeon = *_vm->_dungeonMan;
-	Group *group = (Group *)dungeon.getThingData(thing);
 	Direction rotation = teleporter->getRotation();
+	byte *group = dungeon.getThingData(thing);
 	uint16 groupDirections = _vm->_groupMan->getGroupDirections(group, mapIndex);
 
 	bool absoluteRotation = teleporter->getAbsoluteRotation();
@@ -663,9 +663,9 @@ int16 MovesensMan::getTeleporterRotatedGroupResult(Teleporter *teleporter, Thing
 	uint16 updatedGroupCells = _vm->_groupMan->getGroupCells(group, mapIndex);
 	if (updatedGroupCells != kDMCreatureTypeSingleCenteredCreature) {
 		int16 groupCells = updatedGroupCells;
-		int16 creatureSize = getFlag(dungeon._creatureInfos[group->_type]._attributes, kDMCreatureMaskSize);
+		int16 creatureSize = getFlag(dungeon._creatureInfos[GROUP_type(group)]._attributes, kDMCreatureMaskSize);
 		int16 relativeRotation = _vm->normalizeModulo4(4 + updatedGroupDirections - groupDirections);
-		for (int16 creatureIdx = 0; creatureIdx <= group->getCount(); creatureIdx++) {
+		for (int16 creatureIdx = 0; creatureIdx <= GROUP_getCount(group); creatureIdx++) {
 			updatedGroupDirections = _vm->_groupMan->getGroupValueUpdatedWithCreatureValue(updatedGroupDirections, creatureIdx, absoluteRotation ? (uint16)rotation : _vm->normalizeModulo4(groupDirections + rotation));
 			if (creatureSize == kDMCreatureSizeQuarter) {
 				relativeRotation = absoluteRotation ? 1 : 0;
@@ -681,8 +681,8 @@ int16 MovesensMan::getTeleporterRotatedGroupResult(Teleporter *teleporter, Thing
 	}
 	dungeon.setGroupDirections(group, updatedGroupDirections, mapIndex);
 	dungeon.setGroupCells(group, updatedGroupCells, mapIndex);
-	if ((mapIndex == dungeon._partyMapIndex) && (group->setBehaviour(kDMBehaviorAttack)))
-		return group->getActiveGroupIndex() + 2;
+	if ((mapIndex == dungeon._partyMapIndex) && GROUP_setBehaviour(group, kDMBehaviorAttack))
+		return GROUP_cells(group) + 2;
 
 	return 1;
 }

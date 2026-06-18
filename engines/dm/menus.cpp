@@ -1546,7 +1546,7 @@ bool MenuMan::isMeleeActionPerformed(int16 champIndex, Champion *champ, int16 ac
 		if ((_vm->_objectMan->getIconIndex(champ->_slots[kDMSlotActionHand]) == kDMIconIndiceWeaponVorpalBlade) || (actionIndex == kDMActionDisrupt)) {
 			setFlag(actionHitProbability, kDMActionMaskHitNonMaterialCreatures);
 		}
-		_actionDamage = _vm->_groupMan->getMeleeActionDamage(champ, champIndex, (Group *)dungeon.getThingData(_actionTargetGroupThing), _vm->ordinalToIndex(targetCreatureOrdinal), targetMapX, targetMapY, actionHitProbability, actionDamageFactor, skillIndex);
+		_actionDamage = _vm->_groupMan->getMeleeActionDamage(champ, champIndex, dungeon.getThingData(_actionTargetGroupThing), _vm->ordinalToIndex(targetCreatureOrdinal), targetMapX, targetMapY, actionHitProbability, actionDamageFactor, skillIndex);
 		return true;
 	}
 
@@ -1590,18 +1590,18 @@ bool MenuMan::isGroupFrightenedByAction(int16 champIndex, uint16 actionIndex, in
 	}
 
 	frightAmount += championMan.getSkillLevel(champIndex, kDMSkillInfluence);
-	Group *targetGroup = (Group *)dungeon.getThingData(_actionTargetGroupThing);
-	CreatureInfo *creatureInfo = &dungeon._creatureInfos[targetGroup->_type];
+	byte *targetGroup = dungeon.getThingData(_actionTargetGroupThing);
+	CreatureInfo *creatureInfo = &dungeon._creatureInfos[GROUP_type(targetGroup)];
 	uint16 fearResistance = creatureInfo->getFearResistance();
 	if ((fearResistance > _vm->getRandomNumber(frightAmount)) || (fearResistance == kDMImmuneToFear)) {
 		experience >>= 1;
 	} else {
-		ActiveGroup *activeGroup = &_vm->_groupMan->_activeGroups[targetGroup->getActiveGroupIndex()];
-		if (targetGroup->getBehaviour() == kDMBehaviorAttack) {
+		ActiveGroup *activeGroup = &_vm->_groupMan->_activeGroups[GROUP_cells(targetGroup)];
+		if (GROUP_getBehaviour(targetGroup) == kDMBehaviorAttack) {
 			_vm->_groupMan->stopAttacking(activeGroup, mapX, mapY);
 			_vm->_groupMan->startWandering(mapX, mapY);
 		}
-		targetGroup->setBehaviour(kDMBehaviorFlee);
+		GROUP_setBehaviour(targetGroup, kDMBehaviorFlee);
 		activeGroup->_delayFleeingFromTarget = ((16 - fearResistance) << 2) / creatureInfo->_movementTicks;
 		retVal = true;
 	}

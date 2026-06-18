@@ -1364,7 +1364,7 @@ void EventManager::processType80_clickInDungeonView_grabLeaderHandObject(uint16 
 		Thing groupThing = _vm->_groupMan->groupGetThing(mapX, mapY);
 		if ((groupThing != _vm->_thingEndOfList) &&
 			!_vm->_moveSens->isLevitating(groupThing) &&
-			_vm->_groupMan->getCreatureOrdinalInCell((Group*)_vm->_dungeonMan->getThingData(groupThing), _vm->normalizeModulo4(viewCell + _vm->_dungeonMan->_partyDir))) {
+			_vm->_groupMan->getCreatureOrdinalInCell(_vm->_dungeonMan->getThingData(groupThing), _vm->normalizeModulo4(viewCell + _vm->_dungeonMan->_partyDir))) {
 			return; /* It is not possible to grab an object on floor if there is a non levitating creature on its cell */
 		}
 	}
