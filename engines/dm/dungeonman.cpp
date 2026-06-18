@@ -1285,7 +1285,7 @@ uint16 DungeonMan::getObjectWeight(Thing thing) {
 		}
 		break;
 	case kDMThingTypePotion:
-		if (((Potion *)junk)->getType() == kDMPotionTypeEmptyFlask)
+		if (POTION_type(junk) == kDMPotionTypeEmptyFlask)
 			weight = 1;
 		else
 			weight = 3;
@@ -1306,15 +1306,15 @@ int16 DungeonMan::getObjectInfoIndex(Thing thing) {
 	case kDMThingTypeScroll:
 		return kDMObjectInfoIndexFirstScroll;
 	case kDMThingTypeContainer:
-		return kDMObjectInfoIndexFirstContainer + Container(rawType).getType();
+		return kDMObjectInfoIndexFirstContainer + Container((uint16 *)rawType).getType();
 	case kDMThingTypeJunk:
-		return kDMObjectInfoIndexFirstJunk + Junk(rawType).getType();
+		return kDMObjectInfoIndexFirstJunk + Junk((uint16 *)rawType).getType();
 	case kDMThingTypeWeapon:
 		return kDMObjectInfoIndexFirstWeapon + WEAPON_type(rawType);
 	case kDMThingTypeArmour:
 		return kDMObjectInfoIndexFirstArmour + ARMOUR_type(rawType);
 	case kDMThingTypePotion:
-		return kDMObjectInfoIndexFirstPotion + Potion(rawType).getType();
+		return kDMObjectInfoIndexFirstPotion + POTION_type(rawType);
 	default:
 		return -1;
 	}
@@ -1507,7 +1507,7 @@ Thing DungeonMan::getDiscardThing(uint16 thingType) {
 								_vm->_moveSens->getMoveResult(squareThing, currMapX, currMapY, kDMMapXNotOnASquare, 0);
 								break;
 							case kDMThingTypePotion:
-								if (((Potion *)squareThingData)->getDoNotDiscard())
+								if (POTION_doNotDiscard(squareThingData))
 									continue;
 
 								setCurrentMap(mapIndex);

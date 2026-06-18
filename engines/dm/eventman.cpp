@@ -1194,7 +1194,7 @@ void EventManager::commandProcessType80ClickInDungeonView(int16 posX, int16 posY
 		}
 	} else {
 		Thing thingHandObject = _vm->_championMan->_leaderHandObject;
-		Junk *junkPtr = (Junk*)_vm->_dungeonMan->getThingData(thingHandObject);
+		byte *junkPtr = _vm->_dungeonMan->getThingData(thingHandObject);
 		if (_vm->_dungeonMan->_squareAheadElement == kDMElementTypeWall) {
 			for (uint16 currViewCell = kDMViewCellFronLeft; currViewCell < kDMViewCellFrontRight + 1; currViewCell++) {
 				if (boxObjectPiles[currViewCell].isPointInside(posX, posY)) {
@@ -1210,9 +1210,9 @@ void EventManager::commandProcessType80ClickInDungeonView(int16 posX, int16 posY
 						uint16 iconIdx = _vm->_objectMan->getIconIndex(thingHandObject);
 						uint16 weight = _vm->_dungeonMan->getObjectWeight(thingHandObject);
 						if ((iconIdx >= kDMIconIndiceJunkWater) && (iconIdx <= kDMIconIndiceJunkWaterSkin))
-							junkPtr->setChargeCount(3); /* Full */
+							((Junk *)junkPtr)->setChargeCount(3); /* Full */
 						else if (iconIdx == kDMIconIndicePotionEmptyFlask)
-							((Potion*)junkPtr)->setType(kDMPotionTypeWaterFlask);
+							POTION_setType(junkPtr, kDMPotionTypeWaterFlask);
 						else {
 							commandProcessType80ClickInDungeonViewTouchFrontWall();
 							return;

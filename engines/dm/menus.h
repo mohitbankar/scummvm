@@ -105,7 +105,7 @@ public:
 	int16 getChampionSpellCastResult(uint16 champIndex); // @ F0412_MENUS_GetChampionSpellCastResult
 	Spell *getSpellFromSymbols(byte *symbols); // @ F0409_MENUS_GetSpellFromSymbols
 	void menusPrintSpellFailureMessage(Champion *champ, uint16 failureType, uint16 skillIndex); // @ F0410_MENUS_PrintSpellFailureMessage
-	Potion *getEmptyFlaskInHand(Champion *champ, Thing *potionThing); // @ F0411_MENUS_GetEmptyFlaskInHand
+	byte *getEmptyFlaskInHand(Champion *champ, Thing *potionThing); // @ F0411_MENUS_GetEmptyFlaskInHand
 	void createEvent70_light(int16 lightPower, int16 ticks); // @ F0404_MENUS_CreateEvent70_Light
 	bool isPartySpellOrFireShieldSuccessful(Champion *champ, bool spellShield, uint16 ticks, bool useMana); // @ F0403_MENUS_IsPartySpellOrFireShieldSuccessful
 	void drawAvailableSymbols(uint16 symbolStep); // @ F0397_MENUS_DrawAvailableSymbols

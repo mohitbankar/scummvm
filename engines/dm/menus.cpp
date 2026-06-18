@@ -564,14 +564,14 @@ int16 MenuMan::getChampionSpellCastResult(uint16 champIndex) {
 	switch (curSpell->getKind()) {
 	case kDMSpellKindPotion: {
 		Thing newObject;
-		Potion *newPotion = getEmptyFlaskInHand(curChampion, &newObject);
+		byte *newPotion = getEmptyFlaskInHand(curChampion, &newObject);
 		if (!newPotion) {
 			menusPrintSpellFailureMessage(curChampion, kDMFailureNeedsFlaskInHand, 0);
 			return kDMSpellCastFailureNeedsFlask;
 		}
 		uint16 emptyFlaskWeight = dungeon.getObjectWeight(newObject);
-		newPotion->setType((PotionType)curSpell->getType());
-		newPotion->setPower(_vm->getRandomNumber(16) + (powerSymbolOrdinal * 40));
+		POTION_setType(newPotion, (PotionType)curSpell->getType());
+		POTION_setPower(newPotion, _vm->getRandomNumber(16) + (powerSymbolOrdinal * 40));
 		curChampion->_load += dungeon.getObjectWeight(newObject) - emptyFlaskWeight;
 		championMan.drawChangedObjectIcons();
 		if (_vm->_inventoryMan->_inventoryChampionOrdinal == _vm->indexToOrdinal(champIndex)) {
@@ -817,13 +817,13 @@ void MenuMan::menusPrintSpellFailureMessage(Champion *champ, uint16 failureType,
 	_vm->_textMan->printMessage(kDMColorCyan, message.c_str());
 }
 
-Potion *MenuMan::getEmptyFlaskInHand(Champion *champ, Thing *potionThing) {
+byte *MenuMan::getEmptyFlaskInHand(Champion *champ, Thing *potionThing) {
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 	for (int16 slotIndex = kDMSlotHead; --slotIndex >= kDMSlotReadyHand; ) {
 		Thing curThing = champ->_slots[slotIndex];
 		if ((curThing != _vm->_thingNone) && (_vm->_objectMan->getIconIndex(curThing) == kDMIconIndicePotionEmptyFlask)) {
 			*potionThing = curThing;
-			return (Potion *)dungeon.getThingData(curThing);
+			return dungeon.getThingData(curThing);
 		}
 	}
 	return nullptr;

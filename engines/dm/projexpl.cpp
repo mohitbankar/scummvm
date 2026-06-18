@@ -78,16 +78,16 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 	_creatureDamageOutcome = kDMKillOutcomeNoCreaturesInGroup;
 	Thing projectileAssociatedThing = projectileThingData->_slot;
 	int16 projectileAssociatedThingType = projectileAssociatedThing.getType();
-	Potion *potion = nullptr;
+	byte *potion = nullptr;
 	Thing explosionThing = _vm->_thingNone;
 	if (projectileAssociatedThingType == kDMThingTypePotion) {
 		byte *projectileAssociatedGroup = _vm->_dungeonMan->getThingData(projectileAssociatedThing);
-		PotionType potionType = ((Potion *)projectileAssociatedGroup)->getType();
+		PotionType potionType = POTION_type(projectileAssociatedGroup);
 		if ((potionType == kDMPotionTypeVen) || (potionType == kDMPotionTypeFulBomb)) {
 			explosionThing = (potionType == kDMPotionTypeVen) ? _vm->_thingExplPoisonCloud: _vm->_thingExplFireBall;
 			removePotion = true;
-			potionPower = ((Potion *)projectileAssociatedGroup)->getPower();
-			potion = (Potion *)projectileAssociatedGroup;
+			potionPower = POTION_power(projectileAssociatedGroup);
+			potion = projectileAssociatedGroup;
 		}
 	}
 	bool createExplosionOnImpact = (projectileAssociatedThingType == kDMThingTypeExplosion) && (projectileAssociatedThing != _vm->_thingExplSlime) && (projectileAssociatedThing != _vm->_thingExplPoisonBolt);
@@ -224,7 +224,7 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 	}
 T0217044:
 	if (removePotion) {
-		potion->_nextThing = _vm->_thingNone;
+		POTION_setNextThing(potion, _vm->_thingNone);
 		projectileThingData->_slot = explosionThing;
 	}
 	_vm->_dungeonMan->unlinkThingFromList(projectileThing, Thing(0), projectileMapX, projectileMapY);

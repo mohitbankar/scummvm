@@ -463,19 +463,17 @@ public:
 	uint16 getTextStringThingIndex() { return _attributes & 0x3FF; }
 }; // @ SCROLL
 
-class Potion {
-public:
-	Thing _nextThing;
-	uint16 _attributes;
-	explicit Potion(uint16 *rawDat) : _nextThing(rawDat[0]), _attributes(rawDat[1]) {}
+// @ POTION
+#define POTION_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define POTION_setNextThing(address, val) WRITE_LE_UINT16(address, (val).toUint16())
+#define POTION_attributes(address) READ_LE_UINT16((address) + 2)
+#define POTION_setAttributes(address, val) WRITE_LE_UINT16((address) + 2, val)
 
-	PotionType getType() { return (PotionType)((_attributes >> 8) & 0x7F); }
-	void setType(PotionType val) { _attributes = (_attributes & ~(0x7F << 8)) | ((val & 0x7F) << 8); }
-	Thing getNextThing() { return _nextThing; }
-	uint16 getPower() { return _attributes & 0xFF; }
-	void setPower(uint16 val) { _attributes = (_attributes & ~0xFF) | (val & 0xFF); }
-	uint16 getDoNotDiscard() { return (_attributes >> 15) & 1; }
-}; // @ POTION
+#define POTION_type(address) ((PotionType)((POTION_attributes(address) >> 8) & 0x7F))
+#define POTION_setType(address, val) POTION_setAttributes(address, (POTION_attributes(address) & ~(0x7F << 8)) | (((val) & 0x7F) << 8))
+#define POTION_power(address) (POTION_attributes(address) & 0xFF)
+#define POTION_setPower(address, val) POTION_setAttributes(address, (POTION_attributes(address) & ~0xFF) | ((val) & 0xFF))
+#define POTION_doNotDiscard(address) ((POTION_attributes(address) >> 15) & 1)
 
 class Container {
 	Thing _nextThing;
