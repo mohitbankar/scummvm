@@ -332,19 +332,16 @@ public:
 	uint16 getAttackRange() { return (_ranges >> 12) & 0xF; }
 }; // @ CREATURE_INFO
 
-class Door {
-	Thing _nextThing;
-	uint16 _attributes;
-public:
-	explicit Door(uint16 *rawDat) : _nextThing(rawDat[0]), _attributes(rawDat[1]) {}
-	Thing getNextThing() { return _nextThing; }
-	bool isMeleeDestructible() { return (_attributes >> 8) & 1; }
-	bool isMagicDestructible() { return (_attributes >> 7) & 1; }
-	bool hasButton() { return (_attributes >> 6) & 1; }
-	bool opensVertically() { return (_attributes >> 5) & 1; }
-	byte getOrnOrdinal() { return (_attributes >> 1) & 0xF; }
-	byte getType() { return _attributes & 1; }
-}; // @ DOOR
+// @ DOOR
+#define DOOR_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define DOOR_attributes(address) READ_LE_UINT16((address) + 2)
+
+#define DOOR_isMeleeDestructible(address) ((DOOR_attributes(address) >> 8) & 1)
+#define DOOR_isMagicDestructible(address) ((DOOR_attributes(address) >> 7) & 1)
+#define DOOR_hasButton(address) ((DOOR_attributes(address) >> 6) & 1)
+#define DOOR_opensVertically(address) ((DOOR_attributes(address) >> 5) & 1)
+#define DOOR_ornOrdinal(address) ((DOOR_attributes(address) >> 1) & 0xF)
+#define DOOR_type(address) (DOOR_attributes(address) & 1)
 
 class Teleporter {
 	Thing _nextThing;

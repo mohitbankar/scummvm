@@ -1170,7 +1170,7 @@ void EventManager::commandProcessType80ClickInDungeonView(int16 posX, int16 posY
 
 		if (_vm->_championMan->_leaderEmptyHanded) {
 			byte *junkPtr = _vm->_dungeonMan->getSquareFirstThingData(mapX, mapY);
-			if ((((Door*)junkPtr)->hasButton()) && _vm->_dungeonMan->_dungeonViewClickableBoxes[kDMViewCellDoorButtonOrWallOrn].isPointInside(posX, posY - 33)) {
+			if (DOOR_hasButton(junkPtr) && _vm->_dungeonMan->_dungeonViewClickableBoxes[kDMViewCellDoorButtonOrWallOrn].isPointInside(posX, posY - 33)) {
 				_vm->_stopWaitingForPlayerInput = true;
 				_vm->_sound->requestPlay(kDMSoundIndexSwitch, _vm->_dungeonMan->_partyMapX, _vm->_dungeonMan->_partyMapY, kDMSoundModePlayIfPrioritized);
 				_vm->_moveSens->addEvent(kDMEventTypeDoor, mapX, mapY, kDMCellNorthWest, kDMSensorEffectToggle, _vm->_gameTime + 1);

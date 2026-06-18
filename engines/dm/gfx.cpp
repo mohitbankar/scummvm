@@ -1281,10 +1281,10 @@ void DisplayMan::drawDoor(uint16 doorThingIndex, DoorState doorState, int16 *doo
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
 	DoorFrames *doorFramesTemp = doorFrames;
-	Door *door = (Door *)(dungeon._thingData[kDMThingTypeDoor]) + doorThingIndex;
-	uint16 doorType = door->getType();
+	byte *door = dungeon.getThingData(Thing(kDMThingTypeDoor << 10 | doorThingIndex));
+	uint16 doorType = DOOR_type(door);
 	memmove(_tmpBitmap, getNativeBitmapOrGraphic(doorNativeBitmapIndices[doorType]), byteCount * 2);
-	drawDoorOrnament(door->getOrnOrdinal(), doorOrnament);
+	drawDoorOrnament(DOOR_ornOrdinal(door), doorOrnament);
 	if (getFlag(dungeon._currMapDoorInfo[doorType]._attributes, kDMMaskDoorInfoAnimated)) {
 		if (_vm->getRandomNumber(2))
 			flipBitmapHorizontal(_tmpBitmap, doorFramesTemp->_closedOrDestroyed._srcByteWidth, doorFramesTemp->_closedOrDestroyed._srcHeight);
@@ -1303,7 +1303,7 @@ void DisplayMan::drawDoor(uint16 doorThingIndex, DoorState doorState, int16 *doo
 		drawDoorBitmap(&doorFramesTemp->_closedOrDestroyed);
 	} else {
 		int16 idx = doorState - 1;
-		if (door->opensVertically())
+		if (DOOR_opensVertically(door))
 			drawDoorBitmap(&doorFramesTemp->_vertical[idx]);
 		else {
 			drawDoorBitmap(&doorFramesTemp->_leftHorizontal[idx]);
@@ -1534,7 +1534,7 @@ void DisplayMan::drawSquareD3R(Direction dir, int16 posX, int16 posY) {
 		drawObjectsCreaturesProjectilesExplosions(Thing(squareAspect[kDMSquareAspectFirstGroupOrObject]), dir, posX, posY, kDMViewSquareD3R, kDMCellOrderDoorPass1BackRightBackLeft);
 		memmove(_tmpBitmap, _bitmapWallSetDoorFrameLeftD3L, 32 * 44);
 		drawDoorFrameBitmapFlippedHorizontally(_tmpBitmap, &doorFrameRightD3R);
-		if (((Door *)_vm->_dungeonMan->_thingData[kDMThingTypeDoor])[squareAspect[kDMSquareAspectDoorThingIndex]].hasButton())
+		if (DOOR_hasButton(_vm->_dungeonMan->getThingData(Thing(kDMThingTypeDoor << 10 | squareAspect[kDMSquareAspectDoorThingIndex]))))
 			drawDoorButton(_vm->indexToOrdinal(k0_DoorButton), kDMDoorButtonD3R);
 
 		drawDoor(squareAspect[kDMSquareAspectDoorThingIndex],
@@ -1614,7 +1614,7 @@ void DisplayMan::drawSquareD3C(Direction dir, int16 posX, int16 posY) {
 		drawWallSetBitmap(_bitmapWallSetDoorFrameLeftD3C, doorFrameLeftD3C);
 		memmove(_tmpBitmap, _bitmapWallSetDoorFrameLeftD3C, 32 * 44);
 		drawDoorFrameBitmapFlippedHorizontally(_tmpBitmap, &doorFrameRightD3C);
-		if (((Door *)dungeon._thingData[kDMThingTypeDoor])[squareAspect[kDMSquareAspectDoorThingIndex]].hasButton())
+		if (DOOR_hasButton(dungeon.getThingData(Thing(kDMThingTypeDoor << 10 | squareAspect[kDMSquareAspectDoorThingIndex]))))
 			drawDoorButton(_vm->indexToOrdinal(k0_DoorButton), kDMDoorButtonD3C);
 
 		drawDoor(squareAspect[kDMSquareAspectDoorThingIndex], (DoorState)squareAspect[kDMSquareAspectDoorState],
@@ -1865,7 +1865,7 @@ void DisplayMan::drawSquareD2C(Direction dir, int16 posX, int16 posY) {
 		drawWallSetBitmap(_bitmapWallSetDoorFrameLeftD2C, doorFrameLeftD2C);
 		memcpy(_tmpBitmap, _bitmapWallSetDoorFrameLeftD2C, 48 * 65);
 		drawDoorFrameBitmapFlippedHorizontally(_tmpBitmap, &doorFrameRightD2C);
-		if (((Door *)dungeon._thingData[kDMThingTypeDoor])[squareAspect[kDMSquareAspectDoorThingIndex]].hasButton())
+		if (DOOR_hasButton(dungeon.getThingData(Thing(kDMThingTypeDoor << 10 | squareAspect[kDMSquareAspectDoorThingIndex]))))
 			drawDoorButton(_vm->indexToOrdinal(k0_DoorButton), kDMDoorButtonD2C);
 
 		drawDoor(squareAspect[kDMSquareAspectDoorThingIndex], (DoorState)squareAspect[kDMSquareAspectDoorState],
@@ -2114,7 +2114,7 @@ void DisplayMan::drawSquareD1C(Direction dir, int16 posX, int16 posY) {
 		drawWallSetBitmap(_bitmapWallSetDoorFrameTopD1LCR, doorFrameTopD1C);
 		drawWallSetBitmap(_bitmapWallSetDoorFrameLeftD1C, _doorFrameLeftD1C);
 		drawWallSetBitmap(_bitmapWallSetDoorFrameRightD1C, _doorFrameRightD1C);
-		if (((Door *)dungeon._thingData[kDMThingTypeDoor])[squareAspect[kDMSquareAspectDoorThingIndex]].hasButton())
+		if (DOOR_hasButton(dungeon.getThingData(Thing(kDMThingTypeDoor << 10 | squareAspect[kDMSquareAspectDoorThingIndex]))))
 			drawDoorButton(_vm->indexToOrdinal(k0_DoorButton), kDMDoorButtonD1C);
 
 		drawDoor(squareAspect[kDMSquareAspectDoorThingIndex], (DoorState)squareAspect[kDMSquareAspectDoorState],

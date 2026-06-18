@@ -114,9 +114,9 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 	case kDMElementTypeDoor: {
 		byte curSquare = _vm->_dungeonMan->_currMapData[projectileTargetMapX][projectileTargetMapY];
 		int16 curDoorState = Square(curSquare).getDoorState();
-		Door *curDoor = (Door *)_vm->_dungeonMan->getSquareFirstThingData(projectileTargetMapX, projectileTargetMapY);
+		byte *curDoor = _vm->_dungeonMan->getSquareFirstThingData(projectileTargetMapX, projectileTargetMapY);
 		if ((curDoorState != kDMDoorStateDestroyed) && (projectileAssociatedThing == _vm->_thingExplOpenDoor)) {
-			if (curDoor->hasButton())
+			if (DOOR_hasButton(curDoor))
 				_vm->_moveSens->addEvent(kDMEventTypeDoor, projectileTargetMapX, projectileTargetMapY, kDMCellNorthWest, kDMSensorEffectToggle, _vm->_gameTime + 1);
 			break;
 		}
@@ -124,7 +124,7 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 		if ((curDoorState == kDMDoorStateDestroyed) || (curDoorState <= kDMDoorStateOneFourth))
 			return false;
 
-		DoorInfo curDoorInfo = _vm->_dungeonMan->_currMapDoorInfo[curDoor->getType()];
+		DoorInfo curDoorInfo = _vm->_dungeonMan->_currMapDoorInfo[DOOR_type(curDoor)];
 		if (getFlag(curDoorInfo._attributes, kDMMaskDoorInfoProjectilesCanPassThrough)) {
 			if (projectileAssociatedThingType == kDMThingTypeExplosion) {
 				if (projectileAssociatedThing.toUint16() >= _vm->_thingExplHarmNonMaterial.toUint16())

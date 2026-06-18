@@ -392,8 +392,8 @@ void Timeline::processEventDoorAnimation(TimelineEvent *event) {
 	event->_mapTime++;
 	int16 sensorEffect = event->_Cu.A._effect;
 	if (sensorEffect == kDMSensorEffectClear) {
-		Door *curDoor = (Door *)_vm->_dungeonMan->getSquareFirstThingData(mapX, mapY);
-		bool verticalDoorFl = curDoor->opensVertically();
+		byte *curDoor = _vm->_dungeonMan->getSquareFirstThingData(mapX, mapY);
+		bool verticalDoorFl = DOOR_opensVertically(curDoor);
 		if ((_vm->_dungeonMan->_currMapIndex == _vm->_dungeonMan->_partyMapIndex) && (mapX == _vm->_dungeonMan->_partyMapX)
 		 && (mapY == _vm->_dungeonMan->_partyMapY) && (doorState != kDMDoorStateOpen)) {
 			if (_vm->_championMan->_partyChampionCount > 0) {

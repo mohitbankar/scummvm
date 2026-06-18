@@ -368,11 +368,11 @@ bool GroupMan::isDestVisibleFromSource(uint16 dir, int16 srcMapX, int16 srcMapY,
 bool GroupMan::groupIsDoorDestoryedByAttack(uint16 mapX, uint16 mapY, int16 attack, bool magicAttack, int16 ticks) {
 	DungeonMan &dungeon = *_vm->_dungeonMan;
 
-	Door *curDoor = (Door *)dungeon.getSquareFirstThingData(mapX, mapY);
-	if ((magicAttack && !curDoor->isMagicDestructible()) || (!magicAttack && !curDoor->isMeleeDestructible()))
+	byte *curDoor = dungeon.getSquareFirstThingData(mapX, mapY);
+	if ((magicAttack && !DOOR_isMagicDestructible(curDoor)) || (!magicAttack && !DOOR_isMeleeDestructible(curDoor)))
 		return false;
 
-	if (attack >= dungeon._currMapDoorInfo[curDoor->getType()]._defense) {
+	if (attack >= dungeon._currMapDoorInfo[DOOR_type(curDoor)]._defense) {
 		byte *curSquare = &dungeon._currMapData[mapX][mapY];
 		if (Square(*curSquare).getDoorState() == kDMDoorStateClosed) {
 			if (ticks) {
@@ -1142,8 +1142,8 @@ bool GroupMan::isMovementPossible(CreatureInfo *creatureInfo, int16 mapX, int16 
 		}
 	}
 	if ((curSquareType == kDMElementTypeTeleporter) && getFlag(curSquare, kDMSquareMaskTeleporterOpen) && (creatureInfo->getWariness() >= 10)) {
-		Teleporter *curTeleporter = (Teleporter *)dungeon.getSquareFirstThingData(mapX, mapY);
-		if (getFlag(curTeleporter->getScope(), kDMTeleporterScopeCreatures) && !dungeon.isCreatureAllowedOnMap(_currGroupThing, curTeleporter->getTargetMapIndex())) {
+		byte *curTeleporter = dungeon.getSquareFirstThingData(mapX, mapY);
+		if (getFlag(TELEPORTER_getScope(curTeleporter), kDMTeleporterScopeCreatures) && !dungeon.isCreatureAllowedOnMap(_currGroupThing, TELEPORTER_getTargetMapIndex(curTeleporter))) {
 			_groupMovBlockedByWallStairsPitFakeWalFluxCageTeleporter = true;
 			return false;
 		}
@@ -1154,8 +1154,8 @@ bool GroupMan::isMovementPossible(CreatureInfo *creatureInfo, int16 mapX, int16 
 		return false;
 
 	if (curSquareType == kDMElementTypeDoor) {
-		Teleporter *curTeleporter = (Teleporter *)dungeon.getSquareFirstThingData(mapX, mapY);
-		if (((Square(curSquare).getDoorState()) > (((Door *)curTeleporter)->opensVertically() ? CreatureInfo::getHeight(creatureInfo->_attributes) : 1)) && ((Square(curSquare).getDoorState()) != kDMDoorStateDestroyed) && !getFlag(creatureInfo->_attributes, kDMCreatureMaskNonMaterial)) {
+		byte *curTeleporter = dungeon.getSquareFirstThingData(mapX, mapY);
+		if (((Square(curSquare).getDoorState()) > (DOOR_opensVertically(curTeleporter) ? CreatureInfo::getHeight(creatureInfo->_attributes) : 1)) && ((Square(curSquare).getDoorState()) != kDMDoorStateDestroyed) && !getFlag(creatureInfo->_attributes, kDMCreatureMaskNonMaterial)) {
 			_groupMovementBlockedByDoor = true;
 			return false;
 		}
@@ -1289,9 +1289,9 @@ bool GroupMan::isViewPartyBlocked(uint16 mapX, uint16 mapY) {
 	uint16 curSquare = dungeon._currMapData[mapX][mapY];
 	int16 curSquareType = Square(curSquare).getType();
 	if (curSquareType == kDMElementTypeDoor) {
-		Door *curDoor = (Door *)dungeon.getSquareFirstThingData(mapX, mapY);
+		byte *curDoor = dungeon.getSquareFirstThingData(mapX, mapY);
 		int16 curDoorState = Square(curSquare).getDoorState();
-		return ((curDoorState == kDMDoorStateThreeFourth) || (curDoorState == kDMDoorStateClosed)) && !getFlag(dungeon._currMapDoorInfo[curDoor->getType()]._attributes, kDMMaskDoorInfoCreaturesCanSeeThrough);
+		return ((curDoorState == kDMDoorStateThreeFourth) || (curDoorState == kDMDoorStateClosed)) && !getFlag(dungeon._currMapDoorInfo[DOOR_type(curDoor)]._attributes, kDMMaskDoorInfoCreaturesCanSeeThrough);
 	}
 	return (curSquareType == kDMElementTypeWall) || ((curSquareType == kDMElementTypeFakeWall) && !getFlag(curSquare, kDMSquareMaskFakeWallOpen));
 }
