@@ -566,7 +566,7 @@ T0266017_CheckProjectileImpacts:
 	Thing curThing = dungeon.getSquareFirstThing(projectileMapX, projectileMapY);
 	while (curThing != _vm->_thingEndOfList) {
 		if ((curThing.getType() == kDMThingTypeProjectile) &&
-			(_vm->_timeline->_events[(((Projectile *)dungeon._thingData[kDMThingTypeProjectile])[curThing.getIndex()])._eventIndex]._type != kDMEventTypeMoveProjectileIgnoreImpacts)) {
+			(_vm->_timeline->_events[PROJ_eventIndex(dungeon.getThingData(curThing))]._type != kDMEventTypeMoveProjectileIgnoreImpacts)) {
 			int16 championOrCreatureOrdinal = championOrCreatureOrdinalInCell[curThing.getCell()];
 			if (championOrCreatureOrdinal && _vm->_projexpl->hasProjectileImpactOccurred(impactType, srcMapX, srcMapY, _vm->ordinalToIndex(championOrCreatureOrdinal), curThing)) {
 				_vm->_projexpl->projectileDeleteEvent(curThing);

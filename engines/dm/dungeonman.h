@@ -483,17 +483,17 @@ public:
 #define JUNK_doNotDiscard(address) ((JUNK_attributes(address) >> 7) & 1)
 #define JUNK_setDoNotDiscard(address, val) JUNK_setAttributes(address, (JUNK_attributes(address) & ~(1 << 7)) | (((val) & 1) << 7))
 
-class Projectile {
-public:
-	Thing _nextThing;
-	Thing _slot;
-	uint16 _kineticEnergy;
-	uint16 _attack;
-	uint16 _eventIndex;
-	explicit Projectile(uint16 *rawDat) : _nextThing(rawDat[0]), _slot(rawDat[1]), _kineticEnergy(rawDat[2]),
-		_attack(rawDat[3]), _eventIndex(rawDat[4]) {}
-
-}; // @ PROJECTILE
+// @ PROJECTILE
+#define PROJ_nextThing(address) (Thing(READ_LE_UINT16(address)))
+#define PROJ_setNextThing(address, val) WRITE_LE_UINT16(address, (val).toUint16())
+#define PROJ_slot(address) (Thing(READ_LE_UINT16((address) + 2)))
+#define PROJ_setSlot(address, val) WRITE_LE_UINT16((address) + 2, (val).toUint16())
+#define PROJ_kineticEnergy(address) READ_LE_UINT16((address) + 4)
+#define PROJ_setKineticEnergy(address, val) WRITE_LE_UINT16((address) + 4, (val))
+#define PROJ_attack(address) READ_LE_UINT16((address) + 6)
+#define PROJ_setAttack(address, val) WRITE_LE_UINT16((address) + 6, (val))
+#define PROJ_eventIndex(address) READ_LE_UINT16((address) + 8)
+#define PROJ_setEventIndex(address, val) WRITE_LE_UINT16((address) + 8, (val))
 
 class Explosion {
 	Thing _nextThing;

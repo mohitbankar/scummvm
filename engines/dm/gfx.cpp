@@ -3620,15 +3620,15 @@ T0115129_DrawProjectiles:
 		thingParam = firstThingToDraw; /* Restart processing list of objects from the beginning. The next loop draws only projectile objects among the list */
 		do {
 			if ((thingParam.getType() == kDMThingTypeProjectile) && (thingParam.getCell() == cellYellowBear)) {
-				Projectile *projectile = (Projectile *)dungeon.getThingData(thingParam);
-				AL_4_projectileAspect = dungeon.getProjectileAspect(projectile->_slot);
+				byte *projectile = dungeon.getThingData(thingParam);
+				AL_4_projectileAspect = dungeon.getProjectileAspect(PROJ_slot(projectile));
 				if (AL_4_projectileAspect < 0) { /* Negative value: projectile aspect is the ordinal of a PROJECTIL_ASPECT */
 					objectAspect = (ObjectAspect *)&_projectileAspect[_vm->ordinalToIndex(-AL_4_projectileAspect)];
 					AL_4_nativeBitmapIndex = ((ProjectileAspect *)objectAspect)->_firstNativeBitmapRelativeIndex + kDMGraphicIdxFirstProjectile;
 					projectileAspectType = getFlag(((ProjectileAspect *)objectAspect)->_graphicInfo, k0x0003_ProjectileAspectTypeMask);
 
 					bool doNotScaleWithKineticEnergy = !getFlag(((ProjectileAspect *)objectAspect)->_graphicInfo, k0x0100_ProjectileScaleWithKineticEnergyMask);
-					if ((doNotScaleWithKineticEnergy || (projectile->_kineticEnergy == 255)) && (viewSquareIndex == kDMViewSquareD0C)) {
+					if ((doNotScaleWithKineticEnergy || (PROJ_kineticEnergy(projectile) == 255)) && (viewSquareIndex == kDMViewSquareD0C)) {
 						scale = 0; /* Use native bitmap without resizing */
 						byteWidth = ((ProjectileAspect *)objectAspect)->_byteWidth;
 						heightRedEagle = ((ProjectileAspect *)objectAspect)->_height;
@@ -3636,7 +3636,7 @@ T0115129_DrawProjectiles:
 						AL_8_projectileScaleIndex = ((viewSquareIndex / 3) << 1) + (AL_2_viewCell >> 1);
 						scale = _projectileScales[AL_8_projectileScaleIndex];
 						if (!doNotScaleWithKineticEnergy) {
-							scale = (scale * MAX(96, projectile->_kineticEnergy + 1)) >> 8;
+							scale = (scale * MAX(96, PROJ_kineticEnergy(projectile) + 1)) >> 8;
 						}
 						byteWidth = getScaledDimension(((ProjectileAspect *)objectAspect)->_byteWidth, scale);
 						heightRedEagle = getScaledDimension(((ProjectileAspect *)objectAspect)->_height, scale);
@@ -3649,7 +3649,7 @@ T0115129_DrawProjectiles:
 					if (projectileAspectType == k3_ProjectileAspectHasNone) {
 						projectileBitmapIndexDelta = 0;
 						flipVertical = flipHorizontal = false;
-					} else if (_vm->isOrientedWestEast(Direction(projectileDirection = _vm->_timeline->_events[projectile->_eventIndex]._Cu._projectile.getDir())) != _vm->isOrientedWestEast(directionParam)) {
+					} else if (_vm->isOrientedWestEast(Direction(projectileDirection = _vm->_timeline->_events[PROJ_eventIndex(projectile)]._Cu._projectile.getDir())) != _vm->isOrientedWestEast(directionParam)) {
 						if (projectileAspectType == k2_ProjectileAspectHasRotation)
 							projectileBitmapIndexDelta = 1;
 						else

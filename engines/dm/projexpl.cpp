@@ -50,10 +50,10 @@ void ProjExpl::createProjectile(Thing thing, int16 mapX, int16 mapY, uint16 cell
 		return;
 
 	projectileThing = _vm->thingWithNewCell(projectileThing, cell);
-	Projectile *projectilePtr = (Projectile *)_vm->_dungeonMan->getThingData(projectileThing);
-	projectilePtr->_slot = thing;
-	projectilePtr->_kineticEnergy = MIN((int16)kineticEnergy, (int16)255);
-	projectilePtr->_attack = attack;
+	byte *projectilePtr = _vm->_dungeonMan->getThingData(projectileThing);
+	PROJ_setSlot(projectilePtr, thing);
+	PROJ_setKineticEnergy(projectilePtr, MIN((int16)kineticEnergy, (int16)255));
+	PROJ_setAttack(projectilePtr, attack);
 	_vm->_dungeonMan->linkThingToList(projectileThing, Thing(0), mapX, mapY); /* Projectiles are added on the square and not 'moved' onto the square. In the case of a projectile launcher sensor, this means that the new projectile traverses the square in front of the launcher without any trouble: there is no impact if it is a wall, the projectile direction is not changed if it is a teleporter. Impacts with creatures and champions are still processed */
 	TimelineEvent newEvent;
 	newEvent._mapTime = _vm->setMapAndTime(_vm->_dungeonMan->_currMapIndex, _vm->_gameTime + 1);
@@ -68,15 +68,15 @@ void ProjExpl::createProjectile(Thing thing, int16 mapX, int16 mapY, uint16 cell
 	newEvent._Cu._projectile.setMapY(mapY);
 	newEvent._Cu._projectile.setStepEnergy(stepEnergy);
 	newEvent._Cu._projectile.setDir(dir);
-	projectilePtr->_eventIndex = _vm->_timeline->addEventGetEventIndex(&newEvent);
+	PROJ_setEventIndex(projectilePtr, _vm->_timeline->addEventGetEventIndex(&newEvent));
 }
 
 bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, int16 mapYCombo, int16 cell, Thing projectileThing) {
-	Projectile *projectileThingData = (Projectile *)_vm->_dungeonMan->getThingData(Thing(projectileThing));
+	byte *projectileThingData = _vm->_dungeonMan->getThingData(Thing(projectileThing));
 	bool removePotion = false;
 	int16 potionPower = 0;
 	_creatureDamageOutcome = kDMKillOutcomeNoCreaturesInGroup;
-	Thing projectileAssociatedThing = projectileThingData->_slot;
+	Thing projectileAssociatedThing = PROJ_slot(projectileThingData);
 	int16 projectileAssociatedThingType = projectileAssociatedThing.getType();
 	byte *potion = nullptr;
 	Thing explosionThing = _vm->_thingNone;
@@ -134,7 +134,7 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 				uint16 associatedAllowedSlots = _vm->_dungeonMan->_objectInfos[associatedThingIndex].getAllowedSlots();
 				int16 iconIndex = _vm->_objectMan->getIconIndex(projectileAssociatedThing);
 
-				if ((projectileThingData->_attack > _vm->getRandomNumber(128))
+				if ((PROJ_attack(projectileThingData) > _vm->getRandomNumber(128))
 				&& getFlag(associatedAllowedSlots, kDMMaskPouchPassAndThroughDoors)
 				&& (   (projectileAssociatedThingType != kDMThingTypeJunk)
 					|| (iconIndex < kDMIconIndiceJunkIronKey)
@@ -206,7 +206,7 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 			projectileAssociatedThing = explosionThing;
 			explosionAttack = potionPower;
 		} else {
-			explosionAttack = projectileThingData->_kineticEnergy;
+			explosionAttack = PROJ_kineticEnergy(projectileThingData);
 		}
 		if ((projectileAssociatedThing == _vm->_thingExplLightningBolt) && !(explosionAttack >>= 1))
 			goto T0217044;
@@ -225,18 +225,18 @@ bool ProjExpl::hasProjectileImpactOccurred(int16 impactType, int16 mapXCombo, in
 T0217044:
 	if (removePotion) {
 		POTION_setNextThing(potion, _vm->_thingNone);
-		projectileThingData->_slot = explosionThing;
+		PROJ_setSlot(projectileThingData, explosionThing);
 	}
 	_vm->_dungeonMan->unlinkThingFromList(projectileThing, Thing(0), projectileMapX, projectileMapY);
 	projectileDelete(projectileThing, targetGroup, projectileMapX, projectileMapY);
 	return true;
 }
 
-uint16 ProjExpl::getProjectileImpactAttack(Projectile *projectile, Thing thing) {
+uint16 ProjExpl::getProjectileImpactAttack(byte *projectile, Thing thing) {
 	_projectilePoisonAttack = 0;
 	_projectileAttackType = kDMAttackTypeBlunt;
 
-	uint16 kineticEnergy = projectile->_kineticEnergy;
+	uint16 kineticEnergy = PROJ_kineticEnergy(projectile);
 	ThingType thingType = thing.getType();
 	uint16 attack;
 	if (thingType != kDMThingTypeExplosion) {
@@ -270,7 +270,7 @@ uint16 ProjExpl::getProjectileImpactAttack(Projectile *projectile, Thing thing) 
 	}
 	attack = ((attack + kineticEnergy) >> 4) + 1;
 	attack += _vm->getRandomNumber((attack >> 1) + 1) + _vm->getRandomNumber(4);
-	attack = MAX(attack >> 1, attack - (32 - (projectile->_attack >> 3)));
+	attack = MAX(attack >> 1, attack - (32 - (PROJ_attack(projectile) >> 3)));
 	return attack;
 }
 
@@ -369,13 +369,13 @@ int16 ProjExpl::projectileGetImpactCount(int16 impactType, int16 mapX, int16 map
 }
 
 void ProjExpl::projectileDeleteEvent(Thing thing) {
-	Projectile *projectile = (Projectile *)_vm->_dungeonMan->getThingData(thing);
-	_vm->_timeline->deleteEvent(projectile->_eventIndex);
+	byte *projectile = _vm->_dungeonMan->getThingData(thing);
+	_vm->_timeline->deleteEvent(PROJ_eventIndex(projectile));
 }
 
 void ProjExpl::projectileDelete(Thing projectileThing, byte *group, int16 mapX, int16 mapY) {
-	Projectile *projectile = (Projectile *)_vm->_dungeonMan->getThingData(projectileThing);
-	Thing projectileSlotThing = projectile->_slot;
+	byte *projectile = _vm->_dungeonMan->getThingData(projectileThing);
+	Thing projectileSlotThing = PROJ_slot(projectile);
 	if (projectileSlotThing.getType() != kDMThingTypeExplosion) {
 		if (group != nullptr) {
 			Thing previousThing = GROUP_slot(group);
@@ -388,7 +388,7 @@ void ProjExpl::projectileDelete(Thing projectileThing, byte *group, int16 mapX, 
 		} else
 			_vm->_moveSens->getMoveResult(Thing((projectileSlotThing).getTypeAndIndex() | getFlag(projectileThing.toUint16(), 0xC000)), -2, 0, mapX, mapY);
 	}
-	projectile->_nextThing = _vm->_thingNone;
+	PROJ_setNextThing(projectile, _vm->_thingNone);
 }
 
 void ProjExpl::processEvents48To49(TimelineEvent *event) {
@@ -398,7 +398,7 @@ void ProjExpl::processEvents48To49(TimelineEvent *event) {
 	TimelineEvent *curEvent = &firstEvent;
 	Thing projectileThingNewCell = Thing(curEvent->_Bu._slot);
 	Thing projectileThing  = projectileThingNewCell;
-	Projectile *projectile = (Projectile *)_vm->_dungeonMan->getThingData(projectileThing);
+	byte *projectile = _vm->_dungeonMan->getThingData(projectileThing);
 	int16 destinationMapX = curEvent->_Cu._projectile.getMapX();
 	int16 destinationMapY = curEvent->_Cu._projectile.getMapY();
 
@@ -413,16 +413,16 @@ void ProjExpl::processEvents48To49(TimelineEvent *event) {
 			return;
 
 		uint16 stepEnergy = curEvent->_Cu._projectile.getStepEnergy();
-		if (projectile->_kineticEnergy <= stepEnergy) {
+		if (PROJ_kineticEnergy(projectile) <= stepEnergy) {
 			_vm->_dungeonMan->unlinkThingFromList(projectileThingNewCell = projectileThing, Thing(0), destinationMapX, destinationMapY);
 			projectileDelete(projectileThingNewCell, nullptr, destinationMapX, destinationMapY);
 			return;
 		}
-		projectile->_kineticEnergy -= stepEnergy;
-		if (projectile->_attack < stepEnergy)
-			projectile->_attack = 0;
+		PROJ_setKineticEnergy(projectile, PROJ_kineticEnergy(projectile) - stepEnergy);
+		if (PROJ_attack(projectile) < stepEnergy)
+			PROJ_setAttack(projectile, 0);
 		else
-			projectile->_attack -= stepEnergy;
+			PROJ_setAttack(projectile, PROJ_attack(projectile) - stepEnergy);
 	}
 	uint16 projectileDirection = curEvent->_Cu._projectile.getDir();
 	projectileThingNewCell = Thing(curEvent->_Bu._slot);
@@ -469,7 +469,7 @@ void ProjExpl::processEvents48To49(TimelineEvent *event) {
 	curEvent->_mapTime++;
 
 	curEvent->_Bu._slot = projectileThingNewCell.toUint16();
-	projectile->_eventIndex = _vm->_timeline->addEventGetEventIndex(curEvent);
+	PROJ_setEventIndex(projectile, _vm->_timeline->addEventGetEventIndex(curEvent));
 }
 
 void ProjExpl::processEvent25(TimelineEvent *event) {

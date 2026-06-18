@@ -547,9 +547,9 @@ void Timeline::moveTeleporterOrPitSquareThings(uint16 mapX, uint16 mapY) {
 			_vm->_moveSens->getMoveResult(curThing, mapX, mapY, mapX, mapY);
 
 		if (curThingType == kDMThingTypeProjectile) {
-			Projectile *projectile = (Projectile *)_vm->_dungeonMan->getThingData(curThing);
+			byte *projectile = _vm->_dungeonMan->getThingData(curThing);
 			TimelineEvent *newEvent;
-			newEvent = &_events[projectile->_eventIndex];
+			newEvent = &_events[PROJ_eventIndex(projectile)];
 			newEvent->_Cu._projectile.setMapX(_vm->_moveSens->_moveResultMapX);
 			newEvent->_Cu._projectile.setMapY(_vm->_moveSens->_moveResultMapY);
 			newEvent->_Cu._projectile.setDir((Direction)_vm->_moveSens->_moveResultDir);
