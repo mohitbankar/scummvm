@@ -292,7 +292,7 @@ void InventoryMan::closeChest() {
 
 			if (processFirstChestSlot) {
 				processFirstChestSlot = false;
-				*dunMan.getThingData(thing) = _vm->_thingEndOfList.toUint16();
+				WRITE_LE_UINT16(dunMan.getThingData(thing), _vm->_thingEndOfList.toUint16());
 				container->getSlot() = prevThing = thing;
 			} else {
 				dunMan.linkThingToList(thing, prevThing, kDMMapXNotOnASquare, 0);
@@ -494,7 +494,7 @@ void InventoryMan::drawPanelObject(Thing thingToDraw, bool pressingEye) {
 	if (_vm->_pressingEye || _vm->_pressingMouth)
 		closeChest();
 
-	uint16 *rawThingPtr = dungeon.getThingData(thingToDraw);
+	byte *rawThingPtr = dungeon.getThingData(thingToDraw);
 	drawPanelObjectDescriptionString("\f"); // form feed
 	ThingType thingType = thingToDraw.getType();
 	if (thingType == kDMThingTypeScroll)

@@ -628,7 +628,7 @@ public:
 	void setCurrentMap(uint16 mapIndex); // @ F0173_DUNGEON_SetCurrentMap
 	Thing getSquareFirstThing(int16 mapX, int16 mapY); // @ F0161_DUNGEON_GetSquareFirstThing
 	Thing getNextThing(Thing thing); // @ F0159_DUNGEON_GetNextThing(THING P0280_T_Thing)
-	uint16 *getThingData(Thing thing); // @ F0156_DUNGEON_GetThingData
+	byte *getThingData(Thing thing); // @ F0156_DUNGEON_GetThingData
 	uint16 *getSquareFirstThingData(int16 mapX, int16 mapY); // @ F0157_DUNGEON_GetSquareFirstThingData
 
 	// TODO: this does stuff other than load the file!

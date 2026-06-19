@@ -1034,16 +1034,16 @@ bool DungeonMan::isWallOrnAnAlcove(int16 wallOrnIndex) {
 	return false;
 }
 
-uint16 *DungeonMan::getThingData(Thing thing) {
-	return _thingData[thing.getType()] + thing.getIndex() * _thingDataWordCount[thing.getType()];
+byte *DungeonMan::getThingData(Thing thing) {
+	return (byte *)(_thingData[thing.getType()] + thing.getIndex() * _thingDataWordCount[thing.getType()]);
 }
 
 uint16 *DungeonMan::getSquareFirstThingData(int16 mapX, int16 mapY) {
-	return getThingData(getSquareFirstThing(mapX, mapY));
+	return (uint16 *)getThingData(getSquareFirstThing(mapX, mapY));
 }
 
 Thing DungeonMan::getNextThing(Thing thing) {
-	return Thing(getThingData(thing)[0]);
+	return Thing(READ_LE_UINT16(getThingData(thing)));
 }
 
 void DungeonMan::decodeText(char *destString, size_t maxSize, Thing thing, int16 type) {
@@ -1301,7 +1301,7 @@ uint16 DungeonMan::getObjectWeight(Thing thing) {
 }
 
 int16 DungeonMan::getObjectInfoIndex(Thing thing) {
-	uint16 *rawType = getThingData(thing);
+	byte *rawType = getThingData(thing);
 	switch (thing.getType()) {
 	case kDMThingTypeScroll:
 		return kDMObjectInfoIndexFirstScroll;

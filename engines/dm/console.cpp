@@ -265,8 +265,8 @@ bool Console::Cmd_gimme(int argc, const char** argv) {
 		dummyThing.setType(thingType);
 		for (int16 thingIndex = 0; thingIndex < thingCount; ++thingIndex) {
 			dummyThing.setIndex(thingIndex);
-			uint16 *rawType = _vm->_dungeonMan->getThingData(dummyThing);
-			if (rawType[0] == _vm->_thingNone.toUint16())
+			byte *rawType = _vm->_dungeonMan->getThingData(dummyThing);
+			if (READ_LE_UINT16(rawType) == _vm->_thingNone.toUint16())
 				continue;
 			int16 iconIndex = _vm->_objectMan->getIconIndex(dummyThing);
 			if (iconIndex >= 0 && iconIndex < kDMObjectNameCount) {

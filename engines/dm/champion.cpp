@@ -545,7 +545,7 @@ void ChampionMan::addObjectInSlot(ChampionIndex champIndex, Thing thing, Champio
 	IconIndice iconIndex = objMan.getIconIndex(thing);
 	bool isInventoryChampion = (_vm->indexToOrdinal(champIndex) == invMan._inventoryChampionOrdinal);
 	applyModifiersToStatistics(champ, slotIndex, iconIndex, 1, thing);
-	uint16 *rawObjPtr = dunMan.getThingData(thing);
+	byte *rawObjPtr = dunMan.getThingData(thing);
 
 	if (slotIndex < kDMSlotHead) {
 		if (slotIndex == kDMSlotActionHand) {
