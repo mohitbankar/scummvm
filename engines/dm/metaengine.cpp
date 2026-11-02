@@ -141,7 +141,7 @@ Common::KeymapArray DMMetaEngine::initKeymaps(const char *target) const {
 
 	act = new Action("MOVEFORWARD", _("Move forward"));
 	act->setCustomEngineActionEvent(kActionMoveForward);
-	act->addDefaultInputMapping("KP4"); // Numeric pad 5 Atari ST: Code = 0x4800
+	act->addDefaultInputMapping("KP5"); // Numeric pad 5 Atari ST: Code = 0x4800
 	act->addDefaultInputMapping("w"); // Added for convenience
 	act->addDefaultInputMapping("S+w"); // Added for convenience
 	act->addDefaultInputMapping("UP"); // Up Arrow (<CSI>A)
