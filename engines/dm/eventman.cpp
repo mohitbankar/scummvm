@@ -724,14 +724,14 @@ void EventManager::processCommandQueue() {
 		return;
 	}
 
-	Command cmd = _commandQueue.pop();
-	CommandType cmdType = cmd._type;
+	CommandType cmdType = _commandQueue.front()._type;
 	if ((cmdType >= kDMCommandMoveForward) && (cmdType <= kDMCommandMoveLeft) && (_vm->_disabledMovementTicks || (_vm->_projectileDisableMovementTicks && (_vm->_lastProjectileDisabledMovementDirection == (_vm->normalizeModulo4(_vm->_dungeonMan->_partyDir + cmdType - kDMCommandMoveForward)))))) { /* If movement is disabled */
 		_isCommandQueueLocked = false;
 		processPendingClick();
 		return;
 	}
 
+	Command cmd = _commandQueue.pop();
 	int16 commandX = cmd._pos.x;
 	int16 commandY = cmd._pos.y;
 	_isCommandQueueLocked = false;
