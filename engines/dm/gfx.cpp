@@ -2138,22 +2138,30 @@ void DisplayMan::drawFloorOrnament(uint16 floorOrnOrdinal, ViewFloor viewFloorIn
 		uint16 floorOrnIndex = floorOrnOrdinal;
 		int16 nativeBitmapIndex = _currMapFloorOrnInfo[floorOrnIndex].nativeIndice
 			+ g191_floorOrnNativeBitmapndexInc[viewFloorIndex];
-		uint16 *coordSets = g206_floorOrnCoordSets[_currMapFloorOrnInfo[floorOrnIndex].coordinateSet][viewFloorIndex];
-		uint16 floorByteWidth = (_vm->getPlatform() == Common::kPlatformDOS) ? (getPixelWidth(nativeBitmapIndex) / 2) : coordSets[4];
-		uint16 floorHeight = (_vm->getPlatform() == Common::kPlatformDOS) ? getPixelHeight(nativeBitmapIndex) : coordSets[5];
-
-		byte *bitmap;
-		if ((viewFloorIndex == kDMViewFloorD1R) || (viewFloorIndex == kDMViewFloorD2R)
+		bool flip = ((viewFloorIndex == kDMViewFloorD1R) || (viewFloorIndex == kDMViewFloorD2R)
 			|| (viewFloorIndex == kDMViewFloorD3R)
 			|| ((floorOrnIndex == k15_FloorOrnFootprints) && _useFlippedWallAndFootprintsBitmap &&
-			((viewFloorIndex == kDMViewFloorD1C) || (viewFloorIndex == kDMViewFloorD2C) || (viewFloorIndex == kDMViewFloorD3C)))) {
-			bitmap = _tmpBitmap;
-			copyBitmapAndFlipHorizontal(getNativeBitmapOrGraphic(nativeBitmapIndex), bitmap, floorByteWidth, floorHeight);
-		} else
-			bitmap = getNativeBitmapOrGraphic(nativeBitmapIndex);
+			((viewFloorIndex == kDMViewFloorD1C) || (viewFloorIndex == kDMViewFloorD2C) || (viewFloorIndex == kDMViewFloorD3C))));
 
-		Box blitBox(coordSets[0], coordSets[1], coordSets[2], coordSets[3]);
-		blitToBitmap(bitmap, _bitmapViewport, blitBox, 0, 0, floorByteWidth, k112_byteWidthViewport, kDMColorFlesh, floorHeight, k136_heightViewport);
+		if (_vm->getPlatform() == Common::kPlatformDOS) {
+			int16 zoneIndexDOS = 1500 + _currMapFloorOrnInfo[floorOrnIndex].coordinateSet * 11 + viewFloorIndex + 2;
+			drawBitmapDOS(getNativeBitmapOrGraphic(nativeBitmapIndex), zoneIndexDOS, flip, kDMColorFlesh);
+		} else {
+			uint16 *coordSets = g206_floorOrnCoordSets[_currMapFloorOrnInfo[floorOrnIndex].coordinateSet][viewFloorIndex];
+			uint16 floorByteWidth = coordSets[4];
+			uint16 floorHeight = coordSets[5];
+
+			byte *bitmap;
+			if (flip) {
+				bitmap = _tmpBitmap;
+				copyBitmapAndFlipHorizontal(getNativeBitmapOrGraphic(nativeBitmapIndex), bitmap, floorByteWidth, floorHeight);
+			} else {
+				bitmap = getNativeBitmapOrGraphic(nativeBitmapIndex);
+			}
+
+			Box blitBox(coordSets[0], coordSets[1], coordSets[2], coordSets[3]);
+			blitToBitmap(bitmap, _bitmapViewport, blitBox, 0, 0, floorByteWidth, k112_byteWidthViewport, kDMColorFlesh, floorHeight, k136_heightViewport);
+		}
 	}
 
 	if (drawFootprints)
